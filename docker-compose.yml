@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: fabric_store_db_v2
+    environment:
+      POSTGRES_USER: admin_fabric
+      POSTGRES_PASSWORD: admin_fabric
+      POSTGRES_DB: fabric_store_v2
+    ports:
+      - "5433:5432" 
+    volumes:
+      - postgres_data_v2:/var/lib/postgresql/data
+
+volumes:
+  postgres_data_v2:
