@@ -1,8 +1,7 @@
 package com.gestaotecidos.api.controller;
 
-import com.gestaotecidos.api.domain.Provider;
-import com.gestaotecidos.api.dto.ProviderDtos;
-import com.gestaotecidos.api.service.ProviderService;
+import com.gestaotecidos.api.dto.PersonDtos;
+import com.gestaotecidos.api.service.PersonService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,36 +10,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/providers")
-public class ProviderController {
+@RequestMapping("/api/persons")
+public class PersonController {
 
-    private final ProviderService service;
+    private final PersonService service;
 
-    public ProviderController(ProviderService service) {
+    public PersonController(PersonService service) {
         this.service = service;
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
-    public ResponseEntity<Provider> create(@RequestBody ProviderDtos.Request data) {
+    public ResponseEntity<PersonDtos.Response> create(@RequestBody PersonDtos.Request data) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(data));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'VENDEDOR')")
-    public ResponseEntity<List<Provider>> listAll() {
+    public ResponseEntity<List<PersonDtos.Response>> listAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'VENDEDOR')")
-    public ResponseEntity<Provider> getById(@PathVariable Long id) {
+    public ResponseEntity<PersonDtos.Response> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
-    public ResponseEntity<Provider> update(@PathVariable Long id, @RequestBody ProviderDtos.Request data) {
+    public ResponseEntity<PersonDtos.Response> update(@PathVariable Long id, @RequestBody PersonDtos.Request data) {
         return ResponseEntity.ok(service.update(id, data));
     }
 

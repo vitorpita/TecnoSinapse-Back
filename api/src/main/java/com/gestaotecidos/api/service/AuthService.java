@@ -10,6 +10,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class AuthService {
 
@@ -18,7 +21,11 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService,
+                       AuthenticationManager authenticationManager)
+    {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -26,6 +33,10 @@ public class AuthService {
     }
 
     public AuthDtos.AuthResponse register(UserDtos.RegisterRequest request) {
+        if (userRepository.findByLogin(request.login()).isPresent()) {
+            throw new RuntimeException("Login já esta em uso.");
+        }
+
         var user = new User(
                 request.name(),
                 request.login(),
@@ -33,8 +44,8 @@ public class AuthService {
                 request.role()
         );
         userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        return new AuthDtos.AuthResponse(jwtToken);
+
+        return new AuthDtos.AuthResponse(generateUserToken(user));
     }
 
     public AuthDtos.AuthResponse authenticate(AuthDtos.AuthRequest request) {
@@ -45,7 +56,15 @@ public class AuthService {
                 )
         );
         var user = userRepository.findByLogin(request.login()).orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        return new AuthDtos.AuthResponse(jwtToken);
+        return new AuthDtos.AuthResponse(generateUserToken(user));
     }
+    private String generateUserToken (User user) {
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("name" , user.getName());
+        extraClaims.put("role" , user.getRole().name());
+        return jwtService.generateToken(extraClaims, user);
+    }
+
+
+
 }

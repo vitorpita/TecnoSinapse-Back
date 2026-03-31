@@ -8,11 +8,13 @@ public interface ProductDtos {
     record Request(
             @NotBlank String name,
             String sku,
+            String color,
             String composition,
             Integer weightGsm,
             BigDecimal width,
             @NotNull BigDecimal stockQuantity,
             @NotNull BigDecimal unitPrice,
+            @NotNull BigDecimal purchasePrice,
             @NotNull Long categoryId,
             @NotNull Long providerId
     ) {}

@@ -1,5 +1,6 @@
 package com.gestaotecidos.api.domain;
 
+import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
 import org.hibernate.envers.Audited;
 import org.springframework.data.annotation.CreatedDate;
@@ -17,11 +18,7 @@ import java.util.List;
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
 @Audited
-public class User implements UserDetails {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class User extends BaseDomain implements UserDetails {
 
     @Column(nullable = false)
     private String name;
@@ -36,24 +33,19 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime lastUpdate;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
     public User() { }
 
-    public User(String name, String login, String password, Role role) {
+    public User(String name,
+                String login,
+                String password,
+                Role role)
+    {
         this.name = name;
         this.login = login;
         this.password = password;
         this.role = role;
     }
 
-    public Long getId() { return id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getLogin() { return login; }
@@ -61,8 +53,6 @@ public class User implements UserDetails {
     public void setPassword(String password) { this.password = password; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getLastUpdate() { return lastUpdate; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -1,27 +1,28 @@
 package com.gestaotecidos.api.domain;
 
+import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
 import org.hibernate.envers.Audited;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "products")
 @EntityListeners(AuditingEntityListener.class)
 @Audited
-public class Product {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Product  extends BaseDomain {
 
     @Column(nullable = false)
     private String name;
 
     private String sku;
+    private String color;
+
+    @Column(nullable = false)
+    private BigDecimal purchasePrice;
+
+    @Column(nullable = false)
+    private BigDecimal unitPrice;
 
     @Column(columnDefinition = "TEXT")
     private String composition;
@@ -33,28 +34,23 @@ public class Product {
     @Column(nullable = false)
     private BigDecimal stockQuantity;
 
-    @Column(nullable = false)
-    private BigDecimal unitPrice;
-
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "provider_id")
-    private Provider provider;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "provider_id")
+    private Long providerId;
 
     public Product() {}
 
-    public Long getId() { return id; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getSku() { return sku; }
     public void setSku(String sku) { this.sku = sku; }
+    public String getColor() { return color; }
+    public void setColor(String color) {this.color = color; }
+    public BigDecimal getPurchasePrice() { return purchasePrice; }
+    public void setPurchasePrice(BigDecimal purchasePrice) { this.purchasePrice = purchasePrice; }
     public String getComposition() { return composition; }
     public void setComposition(String composition) { this.composition = composition; }
     public Integer getWeightGsm() { return weightGsm; }
@@ -67,6 +63,6 @@ public class Product {
     public void setUnitPrice(BigDecimal unitPrice) { this.unitPrice = unitPrice; }
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }
-    public Provider getProvider() { return provider; }
-    public void setProvider(Provider provider) { this.provider = provider; }
+    public Long getProviderId() { return providerId; }
+    public void setProviderId(Long providerId) { this.providerId = providerId; }
 }
