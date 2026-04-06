@@ -1,4 +1,4 @@
-package com.gestaotecidos.api.domain;
+package com.gestaotecidos.api.domain.Enums;
 
 public enum PersonRole {
     CLIENTE,

@@ -20,31 +20,31 @@ public class PersonController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAuthority('person:write')")
     public ResponseEntity<PersonDtos.Response> create(@RequestBody PersonDtos.Request data) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(data));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'VENDEDOR')")
-    public ResponseEntity<List<PersonDtos.Response>> listAll() {
+    @PreAuthorize("hasAuthority('person:read')")
+    ResponseEntity<List<PersonDtos.Response>> listAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'VENDEDOR')")
+    @PreAuthorize("hasAuthority('person:read')")
     public ResponseEntity<PersonDtos.Response> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAuthority('person:write')")
     public ResponseEntity<PersonDtos.Response> update(@PathVariable Long id, @RequestBody PersonDtos.Request data) {
         return ResponseEntity.ok(service.update(id, data));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('person:delete')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -22,13 +22,13 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('user:read')")
     public ResponseEntity<List<User>> listAll() {
         return ResponseEntity.ok(repository.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('user:read')")
     public ResponseEntity<User> getById(@PathVariable Long id) {
         return repository.findById(id)
                 .map(ResponseEntity::ok)
@@ -36,7 +36,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('user:write')")
     public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User data) {
         return repository.findById(id)
                 .map(user -> {
@@ -52,7 +52,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('user:delete')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         if (!repository.existsById(id)) {
             return ResponseEntity.notFound().build();

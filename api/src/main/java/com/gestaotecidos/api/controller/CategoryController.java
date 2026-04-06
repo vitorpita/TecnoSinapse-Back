@@ -20,19 +20,19 @@ public class CategoryController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE')")
+    @PreAuthorize("hasAuthority('category:write')")
     public ResponseEntity<Category> create(@RequestBody Category data) {
         return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(data));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'GERENTE', 'VENDEDOR')")
+    @PreAuthorize("hasAuthority('category:read')")
     public ResponseEntity<List<Category>> listAll() {
         return ResponseEntity.ok(repository.findAll());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('category:delete')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         repository.deleteById(id);
         return ResponseEntity.noContent().build();

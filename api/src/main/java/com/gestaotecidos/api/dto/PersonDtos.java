@@ -1,6 +1,6 @@
 package com.gestaotecidos.api.dto;
 
-import com.gestaotecidos.api.domain.PersonRole;
+import com.gestaotecidos.api.domain.Enums.PersonRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 

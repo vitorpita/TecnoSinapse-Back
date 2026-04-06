@@ -1,5 +1,6 @@
 package com.gestaotecidos.api.domain;
 
+import com.gestaotecidos.api.domain.Enums.PersonRole;
 import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
 import org.hibernate.envers.Audited;
