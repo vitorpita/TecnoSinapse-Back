@@ -1,63 +1,50 @@
 package com.gestaotecidos.api.controller;
 
-import com.gestaotecidos.api.domain.User;
-import com.gestaotecidos.api.repository.UserRepository;
+import com.gestaotecidos.api.dto.UserDtos;
+import com.gestaotecidos.api.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService service;
 
-    public UserController(UserRepository repository, PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
+    public UserController(UserService service) {
+        this.service = service;
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('user:read')")
-    public ResponseEntity<List<User>> listAll() {
-        return ResponseEntity.ok(repository.findAll());
+    public ResponseEntity<Page<UserDtos.Response>> listAll(
+            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('user:read')")
-    public ResponseEntity<User> getById(@PathVariable Long id) {
-        return repository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserDtos.Response> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('user:write')")
-    public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User data) {
-        return repository.findById(id)
-                .map(user -> {
-                    user.setName(data.getName());
-                    user.setLogin(data.getLogin());
-                    user.setRole(data.getRole());
-                    if (data.getPassword() != null && !data.getPassword().isEmpty()) {
-                        user.setPassword(passwordEncoder.encode(data.getPassword()));
-                    }
-                    return ResponseEntity.ok(repository.save(user));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserDtos.Response> update(
+            @PathVariable Long id,
+            @RequestBody @Valid UserDtos.UpdateRequest data) {
+        return ResponseEntity.ok(service.update(id, data));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('user:delete')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!repository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        repository.deleteById(id);
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

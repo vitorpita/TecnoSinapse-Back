@@ -2,12 +2,13 @@ package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.Person;
 import com.gestaotecidos.api.dto.PersonDtos;
+import com.gestaotecidos.api.exception.ConflictException;
+import com.gestaotecidos.api.exception.ResourceNotFoundException;
 import com.gestaotecidos.api.repository.PersonRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PersonService {
@@ -20,24 +21,35 @@ public class PersonService {
 
     @Transactional
     public PersonDtos.Response create(PersonDtos.Request data) {
+        if (data.document() != null && !data.document().isBlank()) {
+            repository.findByDocumentAndActiveTrue(data.document()).ifPresent(existing -> {
+                throw new ConflictException("Já existe uma pessoa cadastrada com o documento '" + data.document() + "'.");
+            });
+        }
+
         var person = new Person();
         updatePersonFromDto(person, data);
-        person = repository.save(person);
-        return mapToResponse(person);
+        return mapToResponse(repository.save(person));
     }
 
     @Transactional
     public PersonDtos.Response update(Long id, PersonDtos.Request data) {
         var person = findEntityById(id);
+
+        if (data.document() != null && !data.document().isBlank()) {
+            repository.findByDocumentAndActiveTrue(data.document()).ifPresent(existing -> {
+                if (!existing.getId().equals(id)) {
+                    throw new ConflictException("Já existe uma pessoa cadastrada com o documento '" + data.document() + "'.");
+                }
+            });
+        }
+
         updatePersonFromDto(person, data);
-        person = repository.save(person);
-        return mapToResponse(person);
+        return mapToResponse(repository.save(person));
     }
 
-    public List<PersonDtos.Response> findAll() {
-        return repository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<PersonDtos.Response> findAll(Pageable pageable) {
+        return repository.findByActiveTrue(pageable).map(this::mapToResponse);
     }
 
     public PersonDtos.Response findById(Long id) {
@@ -52,8 +64,8 @@ public class PersonService {
     }
 
     private Person findEntityById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pessoa não encontrada."));
+        return repository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pessoa", id));
     }
 
     private void updatePersonFromDto(Person person, PersonDtos.Request data) {

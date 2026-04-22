@@ -7,8 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -28,8 +29,9 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('order:read')")
-    public ResponseEntity<List<OrderDtos.Response>> listAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<Page<OrderDtos.Response>> listAll(
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/{id}")

@@ -4,15 +4,16 @@ import com.gestaotecidos.api.domain.Order;
 import com.gestaotecidos.api.domain.OrderItem;
 import com.gestaotecidos.api.domain.Enums.PersonRole;
 import com.gestaotecidos.api.dto.OrderDtos;
+import com.gestaotecidos.api.exception.BusinessException;
+import com.gestaotecidos.api.exception.ResourceNotFoundException;
 import com.gestaotecidos.api.repository.OrderRepository;
 import com.gestaotecidos.api.repository.PersonRepository;
 import com.gestaotecidos.api.repository.ProductRepository;
 import com.gestaotecidos.api.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -22,7 +23,10 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
-    public OrderService(OrderRepository orderRepository, PersonRepository personRepository, UserRepository userRepository, ProductRepository productRepository) {
+    public OrderService(OrderRepository orderRepository,
+                        PersonRepository personRepository,
+                        UserRepository userRepository,
+                        ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.personRepository = personRepository;
         this.userRepository = userRepository;
@@ -32,25 +36,21 @@ public class OrderService {
     @Transactional
     public OrderDtos.Response create(OrderDtos.Request data) {
         var order = new Order();
-        processOrderData(order, data, true);
-        order = orderRepository.save(order);
-        return mapToResponse(order);
+        processOrderData(order, data);
+        return mapToResponse(orderRepository.save(order));
     }
 
     @Transactional
     public OrderDtos.Response update(Long id, OrderDtos.Request data) {
         var order = findEntityById(id);
-        revertStockForUpdate(order);
+        revertStock(order);
         order.getItems().clear();
-        processOrderData(order, data, false);
-        order = orderRepository.save(order);
-        return mapToResponse(order);
+        processOrderData(order, data);
+        return mapToResponse(orderRepository.save(order));
     }
 
-    public List<OrderDtos.Response> findAll() {
-        return orderRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<OrderDtos.Response> findAll(Pageable pageable) {
+        return orderRepository.findByActiveTrue(pageable).map(this::mapToResponse);
     }
 
     public OrderDtos.Response findById(Long id) {
@@ -60,56 +60,50 @@ public class OrderService {
     @Transactional
     public void delete(Long id) {
         var order = findEntityById(id);
-        revertStockForUpdate(order);
+        revertStock(order);
         order.deactivate();
         orderRepository.save(order);
     }
 
     private Order findEntityById(Long id) {
-        return orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pedido não encontrado."));
+        return orderRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido", id));
     }
 
-    private void processOrderData(Order order, OrderDtos.Request data, boolean isNew) {
-        var client = personRepository.findById(data.clientId())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado."));
+    private void processOrderData(Order order, OrderDtos.Request data) {
+        var client = personRepository.findByIdAndActiveTrue(data.clientId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente", data.clientId()));
 
-        if (!client.isActive() || !client.getRoles().contains(PersonRole.CLIENTE)) {
-            throw new RuntimeException("Cliente inativo ou não possui papel de cliente.");
+        if (!client.getRoles().contains(PersonRole.CLIENTE)) {
+            throw new BusinessException("A pessoa informada não possui o papel de CLIENTE.");
         }
 
-        var seller = userRepository.findById(data.sellerId())
-                .orElseThrow(() -> new RuntimeException("Vendedor não encontrado."));
-
-        if (!seller.isActive()) {
-            throw new RuntimeException("Vendedor inativo.");
-        }
+        var seller = userRepository.findByIdAndActiveTrue(data.sellerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Vendedor", data.sellerId()));
 
         order.setClient(client);
         order.setSeller(seller);
         order.setStatus(data.status());
 
         data.items().forEach(itemDto -> {
-            var product = productRepository.findById(itemDto.productId())
-                    .orElseThrow(() -> new RuntimeException("Produto não encontrado."));
-
-            if (!product.isActive()) {
-                throw new RuntimeException("O produto " + product.getName() + " está inativo.");
-            }
+            var product = productRepository.findByIdAndActiveTrue(itemDto.productId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Produto", itemDto.productId()));
 
             if (product.getStockQuantity().compareTo(itemDto.quantity()) < 0) {
-                throw new RuntimeException("Estoque insuficiente para o produto: " + product.getName());
+                throw new BusinessException(
+                        "Estoque insuficiente para o produto '" + product.getName() +
+                                "'. Disponível: " + product.getStockQuantity() +
+                                ", solicitado: " + itemDto.quantity());
             }
 
             product.setStockQuantity(product.getStockQuantity().subtract(itemDto.quantity()));
             productRepository.save(product);
 
-            var orderItem = new OrderItem(product, itemDto.quantity(), itemDto.unitPrice());
-            order.addItem(orderItem);
+            order.addItem(new OrderItem(product, itemDto.quantity(), itemDto.unitPrice()));
         });
     }
 
-    private void revertStockForUpdate(Order order) {
+    private void revertStock(Order order) {
         order.getItems().forEach(item -> {
             var product = item.getProduct();
             product.setStockQuantity(product.getStockQuantity().add(item.getQuantity()));
@@ -126,7 +120,7 @@ public class OrderService {
                         item.getQuantity(),
                         item.getUnitPrice(),
                         item.getSubTotal()
-                )).collect(Collectors.toList());
+                )).toList();
 
         return new OrderDtos.Response(
                 order.getId(),

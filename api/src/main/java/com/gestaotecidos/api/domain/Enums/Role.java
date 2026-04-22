@@ -13,19 +13,27 @@ public enum Role {
             Permission.PRODUCT_READ, Permission.PRODUCT_WRITE, Permission.PRODUCT_DELETE,
             Permission.CATEGORY_READ, Permission.CATEGORY_WRITE, Permission.CATEGORY_DELETE,
             Permission.PERSON_READ, Permission.PERSON_WRITE, Permission.PERSON_DELETE,
-            Permission.ORDER_READ, Permission.ORDER_WRITE, Permission.ORDER_DELETE
+            Permission.ORDER_READ, Permission.ORDER_WRITE, Permission.ORDER_DELETE,
+            Permission.PURCHASE_READ, Permission.PURCHASE_WRITE, Permission.PURCHASE_DELETE,
+            Permission.CASH_READ, Permission.CASH_WRITE,
+            Permission.REPORT_READ
     )),
     GERENTE(Set.of(
             Permission.PRODUCT_READ, Permission.PRODUCT_WRITE,
             Permission.CATEGORY_READ, Permission.CATEGORY_WRITE,
             Permission.PERSON_READ, Permission.PERSON_WRITE,
-            Permission.ORDER_READ, Permission.ORDER_WRITE
+            Permission.ORDER_READ, Permission.ORDER_WRITE,
+            Permission.PURCHASE_READ, Permission.PURCHASE_WRITE,
+            Permission.CASH_READ, Permission.CASH_WRITE,
+            Permission.REPORT_READ
     )),
     VENDEDOR(Set.of(
             Permission.PRODUCT_READ,
             Permission.CATEGORY_READ,
             Permission.PERSON_READ,
-            Permission.ORDER_READ, Permission.ORDER_WRITE
+            Permission.ORDER_READ, Permission.ORDER_WRITE,
+            Permission.CASH_READ, Permission.CASH_WRITE,
+            Permission.REPORT_READ
     ));
 
     private final Set<Permission> permissions;

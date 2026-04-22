@@ -15,7 +15,13 @@ public enum Permission {
     PERSON_DELETE("person:delete"),
     ORDER_READ("order:read"),
     ORDER_WRITE("order:write"),
-    ORDER_DELETE("order:delete");
+    ORDER_DELETE("order:delete"),
+    PURCHASE_READ("purchase:read"),
+    PURCHASE_WRITE("purchase:write"),
+    PURCHASE_DELETE("purchase:delete"),
+    CASH_READ("cash:read"),
+    CASH_WRITE("cash:write"),
+    REPORT_READ("report:read");
 
     private final String permission;
 
