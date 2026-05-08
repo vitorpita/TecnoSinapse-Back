@@ -26,6 +26,7 @@ public interface StockMovementDtos {
             String reason,
             Long referenceId,
             String referenceType,
+            Long createdBy,
             LocalDateTime createdAt
     ) {}
 }

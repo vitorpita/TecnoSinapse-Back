@@ -40,4 +40,10 @@ public class StockMovementController {
     public ResponseEntity<StockMovementDtos.Response> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
+    @GetMapping
+    @PreAuthorize("hasAuthority('product:read')")
+    public ResponseEntity<Page<StockMovementDtos.Response>> findAll(
+            @PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(pageable));
+    }
 }

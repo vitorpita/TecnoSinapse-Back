@@ -17,9 +17,7 @@ public class Person extends BaseDomain {
 
     @Column(unique = true)
     private String document;
-
     private String email;
-
     private String phone;
 
     @ElementCollection(targetClass = PersonRole.class, fetch = FetchType.EAGER)

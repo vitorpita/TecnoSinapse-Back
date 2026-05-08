@@ -18,6 +18,8 @@ public class Product  extends BaseDomain {
     private String sku;
     private String color;
 
+    private String imgUrl;
+
     @Column(nullable = false)
     private BigDecimal purchasePrice;
 
@@ -47,6 +49,8 @@ public class Product  extends BaseDomain {
     public void setName(String name) { this.name = name; }
     public String getSku() { return sku; }
     public void setSku(String sku) { this.sku = sku; }
+    public String getImgUrl() { return imgUrl; }
+    public void setImgUrl(String imgUrl) { this.imgUrl = imgUrl; }
     public String getColor() { return color; }
     public void setColor(String color) {this.color = color; }
     public BigDecimal getPurchasePrice() { return purchasePrice; }

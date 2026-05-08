@@ -1,7 +1,6 @@
 package com.gestaotecidos.api.repository;
 
 import com.gestaotecidos.api.domain.PurchaseOrder;
-import com.gestaotecidos.api.domain.PurchaseOrderItem;
 import com.gestaotecidos.api.domain.Enums.PurchaseOrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

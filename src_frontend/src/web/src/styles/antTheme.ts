@@ -1,0 +1,62 @@
+import type { ThemeConfig } from 'antd'
+
+export const antTheme: ThemeConfig = {
+  token: {
+    colorPrimary: '#042C53',
+    colorLink: '#378ADD',
+    colorLinkHover: '#185FA5',
+    colorBgContainer: '#ffffff',
+    colorBgLayout: '#f4f6f9',
+    colorBorder: '#dde3ea',
+    colorBorderSecondary: '#eef2f7',
+    colorText: '#042C53',
+    colorTextSecondary: '#555555',
+    colorTextTertiary: '#888888',
+    colorTextQuaternary: '#bbbbbb',
+    colorError: '#E24B4A',
+    colorSuccess: '#1D9E75',
+    colorWarning: '#F59E0B',
+    colorInfo: '#378ADD',
+    borderRadius: 8,
+    borderRadiusLG: 10,
+    borderRadiusSM: 4,
+    fontFamily: "'Exo 2', sans-serif",
+    fontSize: 13,
+    fontSizeLG: 15,
+    fontSizeSM: 11,
+    lineHeight: 1.6,
+    controlHeight: 38,
+    controlHeightLG: 44,
+    controlHeightSM: 30,
+    paddingContentHorizontal: 14,
+  },
+  components: {
+    Button: {
+      primaryColor: '#ffffff',
+      defaultBg: '#ffffff',
+      defaultBorderColor: '#dde3ea',
+      fontWeight: 600,
+    },
+    Input: {
+      activeBorderColor: '#378ADD',
+      hoverBorderColor: '#85B7EB',
+      activeShadow: '0 0 0 2px rgba(55, 138, 221, 0.15)',
+    },
+    Form: {
+      labelColor: '#042C53',
+      labelFontSize: 12,
+    },
+    Table: {
+      headerBg: '#042C53',
+      headerColor: '#85B7EB',
+      headerSortActiveBg: '#185FA5',
+      rowHoverBg: '#f0f7ff',
+      borderColor: '#eef2f7',
+    },
+    Layout: {
+      siderBg: '#042C53',
+      headerBg: '#ffffff',
+      bodyBg: '#f4f6f9',
+    },
+  },
+}

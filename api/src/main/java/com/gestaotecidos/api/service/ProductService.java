@@ -61,6 +61,7 @@ public class ProductService {
 
         product.setName(data.name());
         product.setSku(data.sku());
+        product.setImgUrl(data.imgUrl());
         product.setColor(data.color());
         product.setComposition(data.composition());
         product.setWeightGsm(data.weightGsm());
@@ -80,6 +81,7 @@ public class ProductService {
                 product.getColor(),
                 product.getComposition(),
                 product.getWeightGsm(),
+                product.getImgUrl(),
                 product.getWidth(),
                 product.getStockQuantity(),
                 product.getUnitPrice(),

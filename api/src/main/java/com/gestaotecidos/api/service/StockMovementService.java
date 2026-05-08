@@ -58,17 +58,22 @@ public class StockMovementService {
                 .orElseThrow(() -> new ResourceNotFoundException("Movimentação", id)));
     }
 
-    private StockMovementDtos.Response mapToResponse(StockMovement sm) {
+    private StockMovementDtos.Response mapToResponse(StockMovement movement) {
         return new StockMovementDtos.Response(
-                sm.getId(),
-                sm.getProduct().getId(),
-                sm.getProduct().getName(),
-                sm.getType(),
-                sm.getQuantity(),
-                sm.getReason(),
-                sm.getReferenceId(),
-                sm.getReferenceType(),
-                sm.getCreatedAt()
+                movement.getId(),
+                movement.getProduct().getId(),
+                movement.getProduct().getName(),
+                movement.getType(),
+                movement.getQuantity(),
+                movement.getReason(),
+                movement.getReferenceId(),
+                movement.getReferenceType(),
+                movement.getCreatedBy(),
+                movement.getCreatedAt()
         );
+    }
+
+    public Page<StockMovementDtos.Response> findAll(Pageable pageable) {
+        return repository.findAll(pageable).map(this::mapToResponse);
     }
 }

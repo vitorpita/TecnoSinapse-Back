@@ -2,6 +2,7 @@ package com.gestaotecidos.api.controller;
 
 import com.gestaotecidos.api.dto.PersonDtos;
 import com.gestaotecidos.api.service.PersonService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,7 @@ public class PersonController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('person:write')")
-    public ResponseEntity<PersonDtos.Response> create(@RequestBody PersonDtos.Request data) {
+    public ResponseEntity<PersonDtos.Response> create(@Valid @RequestBody PersonDtos.Request data) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(data));
     }
 
@@ -41,7 +42,7 @@ public class PersonController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('person:write')")
-    public ResponseEntity<PersonDtos.Response> update(@PathVariable Long id, @RequestBody PersonDtos.Request data) {
+    public ResponseEntity<PersonDtos.Response> update(@PathVariable Long id, @Valid @RequestBody PersonDtos.Request data) {
         return ResponseEntity.ok(service.update(id, data));
     }
 

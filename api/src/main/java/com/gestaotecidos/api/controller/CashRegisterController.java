@@ -22,13 +22,13 @@ public class CashRegisterController {
     }
 
     @PostMapping("/open")
-    @PreAuthorize("hasAuthority('order:write')")
+    @PreAuthorize("hasAuthority('cash:write')")
     public ResponseEntity<CashRegisterDtos.Response> open(@RequestBody @Valid CashRegisterDtos.OpenRequest data) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.open(data));
     }
 
     @PatchMapping("/{id}/close")
-    @PreAuthorize("hasAuthority('order:write')")
+    @PreAuthorize("hasAuthority('cash:write')")
     public ResponseEntity<CashRegisterDtos.Response> close(
             @PathVariable Long id,
             @RequestBody @Valid CashRegisterDtos.CloseRequest data) {
@@ -36,7 +36,7 @@ public class CashRegisterController {
     }
 
     @PostMapping("/{id}/movements")
-    @PreAuthorize("hasAuthority('order:write')")
+    @PreAuthorize("hasAuthority('cash:write')")
     public ResponseEntity<CashRegisterDtos.Response> addMovement(
             @PathVariable Long id,
             @RequestBody @Valid CashRegisterDtos.MovementRequest data) {
@@ -44,19 +44,19 @@ public class CashRegisterController {
     }
 
     @GetMapping("/open")
-    @PreAuthorize("hasAuthority('order:read')")
+    @PreAuthorize("hasAuthority('cash:read')")
     public ResponseEntity<CashRegisterDtos.Response> findOpen() {
         return ResponseEntity.ok(service.findOpenRegister());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('order:read')")
+    @PreAuthorize("hasAuthority('cash:read')")
     public ResponseEntity<CashRegisterDtos.Response> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('order:read')")
+    @PreAuthorize("hasAuthority('cash:read')")
     public ResponseEntity<Page<CashRegisterDtos.Response>> findAll(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(service.findAll(pageable));
