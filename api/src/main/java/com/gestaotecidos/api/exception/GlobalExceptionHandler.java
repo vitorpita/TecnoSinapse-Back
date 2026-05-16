@@ -1,6 +1,7 @@
 package com.gestaotecidos.api.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -42,7 +43,6 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiValidationError> handleValidation(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
@@ -72,10 +72,25 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Login ou senha inválidos.", request);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        String msg = ex.getMessage() != null && ex.getMessage().contains("document")
+                ? "Já existe um cadastro com este documento (CPF/CNPJ)."
+                : "Operação violou uma restrição de integridade dos dados.";
+        return buildResponse(HttpStatus.CONFLICT, msg, request);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleGeneric(Exception ex, HttpServletRequest request) {
+        System.err.println("===== ERRO 500 =====");
+        System.err.println("Endpoint: " + request.getRequestURI());
+        System.err.println("Método: " + request.getMethod());
+        System.err.println("Mensagem: " + ex.getMessage());
+        ex.printStackTrace();
+        System.err.println("====================");
+
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR,
-                "Erro interno inesperado. Por favor, tente novamente mais tarde.", request);
+                "Erro interno: " + ex.getClass().getSimpleName() + " - " + ex.getMessage(), request);
     }
 
     public record ApiError(

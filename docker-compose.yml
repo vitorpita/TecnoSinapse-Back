@@ -4,15 +4,15 @@ services:
     image: postgres:15-alpine
     container_name: fabric_store_db_v2
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME:-admin_fabric}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin_fabric}
+      POSTGRES_DB: ${DB_NAME:-fabric_store_v2}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data_v2:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-admin_fabric} -d ${DB_NAME:-fabric_store_v2}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,20 +20,31 @@ services:
   api:
     build:
       context: ./api
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     container_name: fabric_store_api
     ports:
       - "8080:8080"
     environment:
-      DB_URL: jdbc:postgresql://db:5432/${DB_NAME}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      CORS_ORIGINS: ${CORS_ORIGINS}
+      DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-fabric_store_v2}
+      DB_USERNAME: ${DB_USERNAME:-admin_fabric}
+      DB_PASSWORD: ${DB_PASSWORD:-admin_fabric}
+      JWT_SECRET: ${JWT_SECRET:-404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost}
     depends_on:
       db:
         condition: service_healthy
+    restart: on-failure
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: fabric_store_web
+    ports:
+      - "80:80"
+    depends_on:
+      - api
     restart: on-failure
 
 volumes:

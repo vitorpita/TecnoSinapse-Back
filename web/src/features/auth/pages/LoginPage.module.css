@@ -1,0 +1,187 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  background: #f4f6f9;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Background animated lines ─────────────────────── */
+.bgPattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bgLine {
+  position: absolute;
+  top: -10%;
+  width: 1px;
+  height: 120%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(55, 138, 221, 0.06) 30%,
+    rgba(55, 138, 221, 0.10) 50%,
+    rgba(55, 138, 221, 0.06) 70%,
+    transparent 100%
+  );
+  animation: lineFade 6s ease-in-out infinite alternate;
+}
+
+.bgLine:nth-child(1)  { left: 8%; }
+.bgLine:nth-child(2)  { left: 16%; }
+.bgLine:nth-child(3)  { left: 24%; }
+.bgLine:nth-child(4)  { left: 32%; }
+.bgLine:nth-child(5)  { left: 40%; }
+.bgLine:nth-child(6)  { left: 48%; }
+.bgLine:nth-child(7)  { left: 56%; }
+.bgLine:nth-child(8)  { left: 64%; }
+.bgLine:nth-child(9)  { left: 72%; }
+.bgLine:nth-child(10) { left: 80%; }
+.bgLine:nth-child(11) { left: 88%; }
+.bgLine:nth-child(12) { left: 96%; }
+
+@keyframes lineFade {
+  from { opacity: 0.3; }
+  to   { opacity: 1; }
+}
+
+/* ── Right side (form) ──────────────────────────────── */
+.formSide {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 32px rgba(4, 44, 83, 0.10);
+  overflow: hidden;
+  animation: fadeInUp 0.2s ease-out 0.1s both;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cardHeader {
+  background: #042C53;
+  padding: 28px 32px 24px;
+  text-align: center;
+}
+
+.cardLogo {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #E6F1FB;
+  letter-spacing: -0.5px;
+}
+
+.cardLogo span { color: #378ADD; }
+
+.cardSubtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  color: rgba(133, 183, 235, 0.6);
+  text-transform: uppercase;
+  margin: 6px 0 0;
+}
+
+.cardAccent {
+  height: 3px;
+  background: linear-gradient(90deg, #378ADD 0%, #85B7EB 50%, rgba(133,183,235,0.2) 100%);
+  margin-top: 20px;
+  border-radius: 2px;
+}
+
+.cardBody {
+  padding: 28px 32px 24px;
+}
+
+.welcomeText {
+  margin-bottom: 24px;
+}
+
+.welcomeText h2 {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #042C53;
+  margin: 0 0 4px;
+}
+
+.welcomeText p {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 12px;
+  font-weight: 300;
+  color: #888;
+  margin: 0;
+}
+
+.fieldLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #042C53;
+}
+
+.input {
+  font-family: 'Exo 2', sans-serif !important;
+  font-weight: 300 !important;
+}
+
+.submitBtn {
+  background: #042C53 !important;
+  border-color: #042C53 !important;
+  font-family: 'Exo 2', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #185FA5 !important;
+  border-color: #185FA5 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(4, 44, 83, 0.25) !important;
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.cardFooter {
+  padding: 14px 32px;
+  border-top: 1px solid #f0f4f8;
+  text-align: center;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: #bbb;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  .panel { display: none; }
+  .formSide { padding: 24px 16px; }
+  .card { max-width: 100%; box-shadow: none; border: 1px solid #eef2f7; }
+}

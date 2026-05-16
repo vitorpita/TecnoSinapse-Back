@@ -9,6 +9,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,12 +24,14 @@ public class PurchaseOrderController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('order:write')")
+    @Transactional
     public ResponseEntity<PurchaseOrderDtos.Response> create(@RequestBody @Valid PurchaseOrderDtos.Request data) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(data));
     }
 
     @GetMapping
     @PreAuthorize("hasAuthority('order:read')")
+    @Transactional(readOnly = true)
     public ResponseEntity<Page<PurchaseOrderDtos.Response>> findAll(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(service.findAll(pageable));
@@ -36,12 +39,14 @@ public class PurchaseOrderController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('order:read')")
+    @Transactional(readOnly = true)
     public ResponseEntity<PurchaseOrderDtos.Response> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('order:write')")
+    @Transactional
     public ResponseEntity<PurchaseOrderDtos.Response> update(
             @PathVariable Long id,
             @RequestBody @Valid PurchaseOrderDtos.Request data) {
@@ -50,6 +55,7 @@ public class PurchaseOrderController {
 
     @PatchMapping("/{id}/receive")
     @PreAuthorize("hasAuthority('order:write')")
+    @Transactional
     public ResponseEntity<PurchaseOrderDtos.Response> receive(
             @PathVariable Long id,
             @RequestBody @Valid PurchaseOrderDtos.ReceiveRequest data) {
@@ -58,6 +64,7 @@ public class PurchaseOrderController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('order:delete')")
+    @Transactional
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

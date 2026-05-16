@@ -1,5 +1,6 @@
 package com.gestaotecidos.api.controller;
 
+import com.gestaotecidos.api.domain.Enums.PersonRole;
 import com.gestaotecidos.api.dto.PersonDtos;
 import com.gestaotecidos.api.service.PersonService;
 import jakarta.validation.Valid;
@@ -30,8 +31,13 @@ public class PersonController {
     @GetMapping
     @PreAuthorize("hasAuthority('person:read')")
     public ResponseEntity<Page<PersonDtos.Response>> listAll(
-            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(pageable));
+            @PageableDefault(size = 20, sort = "name") Pageable pageable,
+            @RequestParam(required = false) PersonRole role,
+            @RequestParam(required = false) String search) {
+        if (role != null) {
+            return ResponseEntity.ok(service.findByRole(role, search, pageable));
+        }
+        return ResponseEntity.ok(service.findAll(search, pageable));
     }
 
     @GetMapping("/{id}")

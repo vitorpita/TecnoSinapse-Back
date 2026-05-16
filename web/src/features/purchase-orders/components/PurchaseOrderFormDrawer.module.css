@@ -1,0 +1,38 @@
+.drawerTitle { display: flex; align-items: center; gap: 10px; font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 14px; color: #042C53; }
+
+.drawerFooter { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+
+.totalsFooter { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.totalItem { display: flex; flex-direction: column; gap: 2px; }
+.totalItem span { font-family: 'Rajdhani', sans-serif; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #888; }
+.totalItem strong { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 700; color: #042C53; }
+.discountValue { color: #E24B4A !important; }
+.totalFinal strong { font-size: 17px !important; color: #042C53; }
+
+.saveBtn { background: #042C53 !important; border-color: #042C53 !important; font-family: 'Exo 2', sans-serif !important; font-weight: 600 !important; }
+.saveBtn:hover { background: #185FA5 !important; border-color: #185FA5 !important; }
+
+.sectionTitle { font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 700; color: #042C53; border-bottom: 1px solid #eef2f7; padding-bottom: 8px; margin-bottom: 16px; }
+
+.fieldLabel { font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #042C53; }
+.fieldLabelSm { font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #888; }
+
+.divider { font-family: 'Rajdhani', sans-serif !important; font-size: 11px !important; letter-spacing: 2px !important; text-transform: uppercase !important; color: #888 !important; }
+
+.itemRow { background: #f8fafc; border: 1px solid #eef2f7; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.itemHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.itemIndex { font-family: 'Rajdhani', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #888; font-weight: 600; }
+.removeBtn { background: none; border: 1px solid #fee2e2; border-radius: 4px; color: #E24B4A; cursor: pointer; padding: 3px 10px; font-size: 11px; font-family: 'Exo 2', sans-serif; display: flex; align-items: center; gap: 4px; transition: all 0.15s; }
+.removeBtn:hover { background: #fee2e2; }
+
+.itemSubtotal { text-align: right; padding-top: 2px; }
+.subtotalValue { font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 700; color: #042C53; margin-top: 6px; white-space: nowrap; }
+
+.addItemBtn { width: 100%; background: none; border: 1px dashed #dde3ea; border-radius: 8px; padding: 10px; font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 500; color: #378ADD; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; }
+.addItemBtn:hover { background: #f0f7ff; border-color: #378ADD; }
+
+.loadingWrap { display: flex; align-items: center; justify-content: center; height: 200px; }
+
+.supplierOption { display: flex; flex-direction: column; gap: 2px; padding: 2px 0; }
+.supplierName { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 600; color: #042C53; }
+.supplierDoc { font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 300; color: #888; }

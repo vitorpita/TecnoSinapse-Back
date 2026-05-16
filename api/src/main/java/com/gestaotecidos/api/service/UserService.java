@@ -1,6 +1,5 @@
 package com.gestaotecidos.api.service;
 
-import com.gestaotecidos.api.domain.Enums.Role;
 import com.gestaotecidos.api.domain.User;
 import com.gestaotecidos.api.dto.UserDtos;
 import com.gestaotecidos.api.exception.ConflictException;

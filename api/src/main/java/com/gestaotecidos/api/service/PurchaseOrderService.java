@@ -141,12 +141,14 @@ public class PurchaseOrderService {
         return mapToResponse(repository.save(order));
     }
 
+    @Transactional(readOnly = true)
     public Page<PurchaseOrderDtos.Response> findAll(Pageable pageable) {
-        return repository.findByActiveTrue(pageable).map(this::mapToResponse);
+        return repository.findAllWithItems(pageable).map(this::mapToResponse);
     }
 
+    @Transactional(readOnly = true)
     public PurchaseOrderDtos.Response findById(Long id) {
-        return mapToResponse(findEntityById(id));
+        return mapToResponse(findEntityByIdWithItems(id));
     }
 
     @Transactional
@@ -161,6 +163,11 @@ public class PurchaseOrderService {
 
     private PurchaseOrder findEntityById(Long id) {
         return repository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido de compra", id));
+    }
+
+    private PurchaseOrder findEntityByIdWithItems(Long id) {
+        return repository.findByIdWithItems(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido de compra", id));
     }
 

@@ -4,7 +4,8 @@
 ### Java ###
 # Compiled class file
 *.class
-*.idea/
+.idea/
+src/main/resources/
 
 # Log file
 *.log

@@ -13,13 +13,11 @@ import java.util.List;
 public interface CashRegisterDtos {
 
     record OpenRequest(
-            @NotNull Long openedById,
             @NotNull @PositiveOrZero BigDecimal openingBalance,
             String observation
     ) {}
 
     record CloseRequest(
-            @NotNull Long closedById,
             @NotNull @PositiveOrZero BigDecimal closingBalance,
             String observation
     ) {}
@@ -43,6 +41,12 @@ public interface CashRegisterDtos {
             LocalDateTime closedAt,
             String observation,
             boolean closed,
+            BigDecimal totalIn,
+            BigDecimal totalOut,
+            BigDecimal totalSangrias,
+            BigDecimal totalSuprimentos,
+            BigDecimal expectedBalance,
+            BigDecimal balanceDifference,
             List<MovementResponse> movements
     ) {}
 
@@ -52,6 +56,7 @@ public interface CashRegisterDtos {
             BigDecimal amount,
             String description,
             Long orderId,
+            Long paymentId,
             LocalDateTime createdAt
     ) {}
 }

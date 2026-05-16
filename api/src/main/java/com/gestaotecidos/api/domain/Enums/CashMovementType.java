@@ -6,5 +6,8 @@ public enum CashMovementType {
     SANGRIA,
     SUPRIMENTO,
     ABERTURA,
-    FECHAMENTO
+    FECHAMENTO,
+    RECEBIMENTO,
+    ESTORNO,
+    TRANSFERENCIA
 }

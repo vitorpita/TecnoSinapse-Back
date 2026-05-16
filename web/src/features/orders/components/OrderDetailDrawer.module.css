@@ -1,0 +1,112 @@
+.drawerTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #042C53;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #888;
+  font-weight: 600;
+}
+
+.infoValue {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #042C53;
+}
+
+.divider {
+  font-family: 'Rajdhani', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: #888 !important;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itemName {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #042C53;
+}
+
+.itemQty {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: #888;
+}
+
+.itemSubtotal {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #042C53;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.totalLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #888;
+  font-weight: 600;
+}
+
+.totalValue {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: #042C53;
+}

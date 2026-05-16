@@ -1,6 +1,7 @@
 package com.gestaotecidos.api.dto;
 
 import com.gestaotecidos.api.domain.Enums.PaymentMethod;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -13,19 +14,30 @@ public interface PaymentDtos {
             @NotNull Long orderId,
             @NotNull PaymentMethod paymentMethod,
             @NotNull @Positive BigDecimal amount,
-            @NotNull LocalDateTime paidAt,
+            @NotNull @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss") LocalDateTime paidAt,
+            Long installmentId,
             String transactionCode,
             String observation
     ) {}
 
     record Response(
             Long id,
-            Long orderId,
             PaymentMethod paymentMethod,
             BigDecimal amount,
             LocalDateTime paidAt,
             String transactionCode,
             String observation,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            Long orderId,
+            String orderStatus,
+            Long clientId,
+            String clientName,
+            String clientDocument,
+            String clientEmail,
+            String clientPhone,
+            BigDecimal totalOrderAmount,
+            BigDecimal totalPaid,
+            BigDecimal pending,
+            String paymentStatus
     ) {}
 }

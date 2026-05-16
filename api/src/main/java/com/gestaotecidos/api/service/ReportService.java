@@ -1,6 +1,7 @@
 package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.Enums.CashMovementType;
+import com.gestaotecidos.api.domain.OrderItem;
 import com.gestaotecidos.api.dto.ReportDtos;
 import com.gestaotecidos.api.repository.CashRegisterRepository;
 import com.gestaotecidos.api.repository.OrderRepository;
@@ -84,7 +85,7 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public List<ReportDtos.TopProductItem> getTopProducts(LocalDateTime from, LocalDateTime to) {
-        var orders = orderRepository.findByActiveTrue(org.springframework.data.domain.Pageable.unpaged());
+        var orders = orderRepository.findAllActive();
 
         return orders.stream()
                 .filter(o -> o.getCreatedAt() != null && !o.getCreatedAt().isBefore(from) && !o.getCreatedAt().isAfter(to))
@@ -98,10 +99,10 @@ public class ReportService {
                     var items = entry.getValue();
                     var product = items.get(0).getProduct();
                     var totalQty = items.stream()
-                            .map(i -> i.getQuantity())
+                            .map(OrderItem::getQuantity)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     var totalRevenue = items.stream()
-                            .map(i -> i.getSubTotal())
+                            .map(OrderItem::getSubTotal)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
                     return new ReportDtos.TopProductItem(
                             product.getId(),
@@ -134,7 +135,7 @@ public class ReportService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalSales = movements.stream()
-                .filter(m -> m.getOrderId() != null && m.getType() == CashMovementType.ENTRADA)
+                .filter(m -> m.getOrder() != null && m.getType() == CashMovementType.RECEBIMENTO)
                 .map(m -> m.getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -175,7 +176,7 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public List<ReportDtos.SalesRankItem> getSalesRank(LocalDateTime from, LocalDateTime to) {
-        var orders = orderRepository.findByActiveTrue(org.springframework.data.domain.Pageable.unpaged());
+        var orders = orderRepository.findAllActive();
 
         return orders.stream()
                 .filter(o -> o.getCreatedAt() != null && !o.getCreatedAt().isBefore(from) && !o.getCreatedAt().isAfter(to))

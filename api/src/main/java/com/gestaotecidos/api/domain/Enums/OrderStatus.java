@@ -1,9 +1,10 @@
 package com.gestaotecidos.api.domain.Enums;
 
 public enum OrderStatus {
-    ORCAMENTO,
-    PENDENTE,
-    PAGO,
+    DIGITACAO,
+    AGUARDANDO_APROVACAO,
+    APROVADO,
+    FATURADO,
     ENVIADO,
     ENTREGUE,
     CANCELADO

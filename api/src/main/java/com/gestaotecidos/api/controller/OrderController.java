@@ -3,13 +3,13 @@ package com.gestaotecidos.api.controller;
 import com.gestaotecidos.api.dto.OrderDtos;
 import com.gestaotecidos.api.service.OrderService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -30,7 +30,7 @@ public class OrderController {
     @GetMapping
     @PreAuthorize("hasAuthority('order:read')")
     public ResponseEntity<Page<OrderDtos.Response>> listAll(
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
         return ResponseEntity.ok(service.findAll(pageable));
     }
 
@@ -44,6 +44,32 @@ public class OrderController {
     @PreAuthorize("hasAuthority('order:write')")
     public ResponseEntity<OrderDtos.Response> update(@PathVariable Long id, @RequestBody @Valid OrderDtos.Request data) {
         return ResponseEntity.ok(service.update(id, data));
+    }
+
+    @PatchMapping("/{id}/await-approval")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<OrderDtos.Response> awaitApproval(@PathVariable Long id) {
+        return ResponseEntity.ok(service.awaitApproval(id));
+    }
+
+    @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<OrderDtos.Response> approve(@PathVariable Long id) {
+        return ResponseEntity.ok(service.approve(id));
+    }
+
+    @PatchMapping("/{id}/faturar")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<OrderDtos.Response> faturar(
+            @PathVariable Long id,
+            @RequestBody(required = false) OrderDtos.FaturarRequest body) {
+        return ResponseEntity.ok(service.faturar(id, body));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<OrderDtos.Response> cancel(@PathVariable Long id) {
+        return ResponseEntity.ok(service.cancel(id));
     }
 
     @DeleteMapping("/{id}")

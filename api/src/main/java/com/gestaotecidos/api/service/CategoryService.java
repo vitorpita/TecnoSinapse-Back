@@ -28,6 +28,7 @@ public class CategoryService {
 
         var category = new Category();
         category.setName(data.name());
+        category.setDescription(data.description());
         category = repository.save(category);
         return mapToResponse(category);
     }
@@ -54,6 +55,7 @@ public class CategoryService {
         });
 
         category.setName(data.name());
+        category.setDescription(data.description());
         category = repository.save(category);
         return mapToResponse(category);
     }
@@ -75,6 +77,7 @@ public class CategoryService {
         return new CategoryDtos.Response(
                 category.getId(),
                 category.getName(),
+                category.getDescription(),
                 category.isActive()
         );
     }

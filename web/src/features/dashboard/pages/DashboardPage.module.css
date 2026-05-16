@@ -1,0 +1,227 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Cards ─────────────────────────────────────────── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #eef2f7;
+  border-top: 3px solid #378ADD;
+  transition: box-shadow 0.2s, transform 0.15s;
+  cursor: default;
+}
+
+.card:hover {
+  box-shadow: 0 4px 20px rgba(4,44,83,0.09);
+  transform: translateY(-1px);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cardIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 6px;
+}
+
+.cardValue {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #042C53;
+  line-height: 1;
+}
+
+.cardSub {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: #888;
+}
+
+/* ── Chart ─────────────────────────────────────────── */
+.chartBox {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #eef2f7;
+  padding: 24px 24px 20px;
+}
+
+.chartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.chartTitle {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #042C53;
+  margin: 0 0 4px;
+}
+
+.chartSub {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: #888;
+  margin: 0;
+}
+
+.chartBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: #888;
+  text-transform: uppercase;
+  background: #f4f6f9;
+  border-radius: 100px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.chartBadgeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #378ADD;
+  flex-shrink: 0;
+}
+
+.chartWrap {
+  margin: 0 -8px;
+}
+
+/* Custom Tooltip */
+.tooltip {
+  background: #042C53;
+  border-radius: 6px;
+  padding: 8px 14px;
+  box-shadow: 0 4px 16px rgba(4,44,83,0.2);
+}
+
+.tooltipLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #85B7EB;
+  margin-bottom: 2px;
+}
+
+.tooltipValue {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #E6F1FB;
+}
+
+/* ── Quick Actions ─────────────────────────────────── */
+.quickSection {}
+
+.quickTitle {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #042C53;
+  margin: 0 0 14px;
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.quickItem {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #eef2f7;
+  padding: 22px 16px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.quickItem:hover {
+  border-color: #378ADD;
+  box-shadow: 0 4px 16px rgba(55,138,221,0.12);
+  transform: translateY(-2px);
+}
+
+.quickIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  transition: background 0.15s;
+}
+
+.quickItem:hover .quickIcon {
+  filter: brightness(1.1);
+}
+
+.quickLabel {
+  display: block;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #042C53;
+  margin-bottom: 4px;
+}
+
+.quickDesc {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: #888;
+  margin: 0;
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+  .quickGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .cards { grid-template-columns: 1fr 1fr; }
+  .quickGrid { grid-template-columns: repeat(2, 1fr); }
+}

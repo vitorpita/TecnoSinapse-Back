@@ -20,14 +20,19 @@ public class CashMovement extends BaseDomain {
     @Column(nullable = false)
     private CashMovementType type;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
     @Column(nullable = false)
     private String description;
 
-    @Column(name = "order_id")
-    private Long orderId;
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "payment_id")
+    private Payment payment;
 
     public CashMovement() {}
 
@@ -39,6 +44,8 @@ public class CashMovement extends BaseDomain {
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public Long getOrderId() { return orderId; }
-    public void setOrderId(Long orderId) { this.orderId = orderId; }
+    public Order getOrder() { return order; }
+    public void setOrder(Order order) { this.order = order; }
+    public Payment getPayment() { return payment; }
+    public void setPayment(Payment payment) { this.payment = payment; }
 }

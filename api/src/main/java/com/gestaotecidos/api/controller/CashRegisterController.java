@@ -1,5 +1,6 @@
 package com.gestaotecidos.api.controller;
 
+import com.gestaotecidos.api.domain.User;
 import com.gestaotecidos.api.dto.CashRegisterDtos;
 import com.gestaotecidos.api.service.CashRegisterService;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,16 +25,19 @@ public class CashRegisterController {
 
     @PostMapping("/open")
     @PreAuthorize("hasAuthority('cash:write')")
-    public ResponseEntity<CashRegisterDtos.Response> open(@RequestBody @Valid CashRegisterDtos.OpenRequest data) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.open(data));
+    public ResponseEntity<CashRegisterDtos.Response> open(
+            @RequestBody @Valid CashRegisterDtos.OpenRequest data,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.open(data, currentUser));
     }
 
     @PatchMapping("/{id}/close")
     @PreAuthorize("hasAuthority('cash:write')")
     public ResponseEntity<CashRegisterDtos.Response> close(
             @PathVariable Long id,
-            @RequestBody @Valid CashRegisterDtos.CloseRequest data) {
-        return ResponseEntity.ok(service.close(id, data));
+            @RequestBody @Valid CashRegisterDtos.CloseRequest data,
+            @AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(service.close(id, data, currentUser));
     }
 
     @PostMapping("/{id}/movements")
@@ -46,7 +51,9 @@ public class CashRegisterController {
     @GetMapping("/open")
     @PreAuthorize("hasAuthority('cash:read')")
     public ResponseEntity<CashRegisterDtos.Response> findOpen() {
-        return ResponseEntity.ok(service.findOpenRegister());
+        return service.findOpenRegister()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @GetMapping("/{id}")

@@ -1,7 +1,9 @@
 package com.gestaotecidos.api.domain;
 
 import com.gestaotecidos.api.domain.Enums.OrderStatus;
+import com.gestaotecidos.api.domain.Enums.PaymentMethod;
 import com.gestaotecidos.api.domain.commun.BaseDomain;
+import com.gestaotecidos.api.domain.converter.OrderStatusConverter;
 import jakarta.persistence.*;
 import org.hibernate.envers.Audited;
 
@@ -22,12 +24,22 @@ public class Order extends BaseDomain {
     @JoinColumn(name = "seller_id")
     private User seller;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = OrderStatusConverter.class)
     @Column(nullable = false)
-    private OrderStatus status = OrderStatus.ORCAMENTO;
+    private OrderStatus status = OrderStatus.DIGITACAO;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private PaymentMethod paymentMethod;
+
+    @Column(length = 50)
+    private String paymentCondition;
+
+    @Column(columnDefinition = "TEXT")
+    private String observation;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
@@ -42,6 +54,12 @@ public class Order extends BaseDomain {
     public void setStatus(OrderStatus status) { this.status = status; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getPaymentCondition() { return paymentCondition; }
+    public void setPaymentCondition(String paymentCondition) { this.paymentCondition = paymentCondition; }
+    public String getObservation() { return observation; }
+    public void setObservation(String observation) { this.observation = observation; }
     public List<OrderItem> getItems() { return items; }
 
     public void addItem(OrderItem item) {

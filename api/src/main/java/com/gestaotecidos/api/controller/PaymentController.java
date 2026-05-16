@@ -26,6 +26,12 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(data));
     }
 
+    @GetMapping
+    @PreAuthorize("hasAuthority('order:read')")
+    public ResponseEntity<List<PaymentDtos.Response>> findAll() {
+        return ResponseEntity.ok(service.findAll());
+    }
+
     @GetMapping("/order/{orderId}")
     @PreAuthorize("hasAuthority('order:read')")
     public ResponseEntity<List<PaymentDtos.Response>> findByOrder(@PathVariable Long orderId) {
