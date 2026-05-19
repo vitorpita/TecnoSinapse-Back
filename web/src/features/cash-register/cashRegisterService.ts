@@ -1,6 +1,6 @@
 import { api } from '@/libs/axios'
 
-export type CashMovementType = 'ENTRADA' | 'SAIDA'
+export type CashMovementType = 'ENTRADA' | 'SAIDA' | 'RECEBIMENTO' | 'SANGRIA' | 'SUPRIMENTO' | 'ABERTURA' | 'FECHAMENTO' | 'ESTORNO' | 'TRANSFERENCIA'
 
 export interface CashMovement {
   id:          number

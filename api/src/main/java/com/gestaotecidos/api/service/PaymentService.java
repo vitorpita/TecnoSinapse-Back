@@ -39,6 +39,10 @@ public class PaymentService {
 
     @Transactional
     public PaymentDtos.Response create(PaymentDtos.Request data) {
+        cashRegisterRepository.findOpenRegister()
+                .orElseThrow(() -> new BusinessException(
+                        "Não há caixa aberto. Abra o caixa antes de registrar pagamentos."));
+
         var order = orderRepository.findById(data.orderId())
                 .filter(o -> o.isActive())
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido", data.orderId()));

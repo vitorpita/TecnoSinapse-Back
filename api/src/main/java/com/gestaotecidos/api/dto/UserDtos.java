@@ -18,21 +18,27 @@ public class UserDtos {
             @NotBlank String name,
             @NotBlank String login,
             @NotBlank String password,
-            @NotNull Role role
+            @NotNull Role role,
+            Long cargoId
     ) {}
 
     public record UpdateRequest(
             @NotBlank String name,
             @NotBlank String login,
             @NotNull Role role,
-            String password
+            String password,
+            Long cargoId
     ) {}
+
+    public record AssignCargoRequest(Long cargoId) {}
 
     public record Response(
             Long id,
             String name,
             String login,
             Role role,
+            Long cargoId,
+            String cargoName,
             boolean active,
             LocalDateTime createdAt,
             LocalDateTime updatedAt

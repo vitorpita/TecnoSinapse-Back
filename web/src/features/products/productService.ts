@@ -45,8 +45,9 @@ export interface PageResponse<T> {
 }
 
 export interface CategoryOption {
-  id:   number
-  name: string
+  id:           number
+  name:         string
+  description?: string
 }
 
 export interface ProviderOption {

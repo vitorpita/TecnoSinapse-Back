@@ -14,6 +14,12 @@
   position: fixed;
   top: 0; left: 0; bottom: 0;
   z-index: 50;
+  transition: width 0.22s ease;
+  overflow: hidden;
+}
+
+.sidebarCollapsed {
+  width: 56px;
 }
 
 .sidebarLogo {
@@ -33,6 +39,16 @@
   line-height: 1;
 }
 .logoText span { color: #378ADD; }
+
+.logoIcon {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: #E6F1FB;
+  line-height: 1;
+  text-align: center;
+}
+.logoIcon span { color: #378ADD; }
 
 .logoSub {
   font-family: 'Rajdhani', sans-serif;
@@ -59,6 +75,14 @@
   color: rgba(133,183,235,0.4);
   text-transform: uppercase;
   padding: 14px 20px 5px;
+  white-space: nowrap;
+}
+
+.menuLabelDot {
+  width: 20px;
+  height: 1px;
+  background: rgba(133,183,235,0.15);
+  margin: 12px auto 4px;
 }
 
 .menuItem {
@@ -73,6 +97,16 @@
   cursor: pointer;
   border-left: 3px solid transparent;
   transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.menuItemCollapsed {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.menuItem.active.menuItemCollapsed {
+  border-left-color: #378ADD;
 }
 .menuItem:hover {
   background: rgba(255,255,255,0.05);
@@ -97,6 +131,25 @@
   border-top: 1px solid rgba(255,255,255,0.08);
 }
 
+.collapseBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(133,183,235,0.45);
+  cursor: pointer;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  width: 100%;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+.collapseBtn:hover { color: #E6F1FB; }
+
 .logoutBtn {
   display: flex;
   align-items: center;
@@ -109,8 +162,20 @@
   padding: 6px 0;
   transition: color 0.15s;
   margin-bottom: 8px;
+  white-space: nowrap;
 }
 .logoutBtn:hover { color: #E24B4A; }
+
+.logoutBtnIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(133,183,235,0.5);
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.15s;
+}
+.logoutBtnIcon:hover { color: #E24B4A; }
 
 .version {
   font-family: 'Rajdhani', sans-serif;
@@ -127,6 +192,11 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: margin-left 0.22s ease;
+}
+
+.mainCollapsed {
+  margin-left: 56px;
 }
 
 .topbar {
@@ -162,6 +232,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
 }
 
 .userInfo { text-align: right; }
@@ -184,9 +255,23 @@
   color: #888;
 }
 
-.avatar {
+.avatarWrap {
   width: 34px;
   height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+.avatarWrap:hover,
+.avatarWrapOpen {
+  border-color: #378ADD;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
   background: #185FA5;
   border-radius: 50%;
   display: flex;
@@ -196,7 +281,88 @@
   font-size: 12px;
   font-weight: 700;
   color: #E6F1FB;
-  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profileDropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 210px;
+  background: #ffffff;
+  border: 1px solid #E6F1FB;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(4,44,83,0.12);
+  z-index: 200;
+  overflow: hidden;
+  animation: fadeIn 0.12s ease-out;
+}
+
+.profileDropdownHeader {
+  padding: 12px 14px 10px;
+  background: #f8fafd;
+  border-bottom: 1px solid #E6F1FB;
+}
+
+.profileDropdownName {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #042C53;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileDropdownRole {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #888;
+  margin-top: 2px;
+}
+
+.profileDropdownDivider {
+  height: 1px;
+  background: #E6F1FB;
+  margin: 4px 0;
+}
+
+.profileDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: #333;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, color 0.12s;
+}
+.profileDropdownItem:hover {
+  background: #f0f6ff;
+  color: #042C53;
+}
+
+.profileDropdownItemDanger {
+  color: #E24B4A;
+}
+.profileDropdownItemDanger:hover {
+  background: #fff0f0;
+  color: #c0392b;
 }
 
 .content {

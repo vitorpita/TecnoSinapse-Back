@@ -7,6 +7,9 @@ export interface AuthUser {
   name: string
   login: string
   role: UserRole
+  cargoId?: number
+  cargoName?: string
+  permissions: string[]
 }
 
 export interface AuthState {
@@ -21,7 +24,7 @@ export function parseJwt(token: string): (AuthUser & { exp?: number }) | null {
   try {
     const base64Url = token.split('.')[1]
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-    
+
     const jsonPayload = decodeURIComponent(
       window
         .atob(base64)
@@ -29,13 +32,16 @@ export function parseJwt(token: string): (AuthUser & { exp?: number }) | null {
         .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     )
-    
+
     const payload = JSON.parse(jsonPayload)
 
     return {
       name: payload.name ?? payload.sub,
       login: payload.sub,
       role: payload.role as UserRole,
+      cargoId: payload.cargoId,
+      cargoName: payload.cargoName,
+      permissions: payload.permissions ?? [],
       exp: payload.exp,
     }
   } catch {

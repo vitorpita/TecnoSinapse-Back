@@ -4,10 +4,13 @@ import com.gestaotecidos.api.domain.Enums.Role;
 import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -27,6 +30,11 @@ public class User extends BaseDomain implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @NotAudited
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "cargo_id")
+    private Cargo cargo;
 
     public User() { }
 
@@ -48,6 +56,8 @@ public class User extends BaseDomain implements UserDetails {
     public void setPassword(String password) { this.password = password; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+    public Cargo getCargo() { return cargo; }
+    public void setCargo(Cargo cargo) { this.cargo = cargo; }
 
     @Override
     public String getPassword() { return password; }
@@ -69,6 +79,13 @@ public class User extends BaseDomain implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (cargo != null) {
+            var authorities = cargo.getPermissions().stream()
+                    .map(p -> new SimpleGrantedAuthority(p.getPermission()))
+                    .collect(Collectors.toList());
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
+            return authorities;
+        }
         return role.getAuthorities();
     }
 }

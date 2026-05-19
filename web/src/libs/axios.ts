@@ -24,7 +24,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    const status = error.response?.status
+    const url: string = error.config?.url ?? ''
+    const isAuthEndpoint = url.includes('/auth/authenticate') || url.includes('/auth/register')
+
+    if (status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('ts-auth')
       window.location.href = '/login'
     }

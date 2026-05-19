@@ -5,7 +5,7 @@
 # Compiled class file
 *.class
 .idea/
-src/main/resources/
+
 
 # Log file
 *.log

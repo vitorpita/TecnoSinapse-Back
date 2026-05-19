@@ -3,6 +3,7 @@ import { App, Button, Drawer, Form, Input, Modal, Popconfirm, Select, Spin, Tag,
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { userService, type UserRecord, type UserRole } from '../userService'
+import { cargoService } from '@/features/cargos/cargoService'
 import styles from './UsersPage.module.css'
 
 const ROLE_CONFIG: Record<UserRole, { label: string; color: string }> = {
@@ -40,6 +41,12 @@ export default function UsersPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['users', page, search],
     queryFn:  () => userService.list(page, 20, search || undefined),
+  })
+
+  const { data: cargos = [] } = useQuery({
+    queryKey: ['cargos'],
+    queryFn:  cargoService.list,
+    staleTime: 1000 * 60 * 5,
   })
 
   const users = data?.content ?? []
@@ -97,7 +104,7 @@ export default function UsersPage() {
 
   const openEdit = (user: UserRecord) => {
     setEditing(user)
-    form.setFieldsValue({ name: user.name, login: user.login, role: user.role, password: '' })
+    form.setFieldsValue({ name: user.name, login: user.login, role: user.role, password: '', cargoId: user.cargoId ?? null })
     setDrawerOpen(true)
   }
 
@@ -115,17 +122,24 @@ export default function UsersPage() {
     form.resetFields()
   }
 
-  const onFinish = (values: { name: string; login: string; password: string; role: UserRole }) => {
+  const onFinish = (values: { name: string; login: string; password: string; role: UserRole; cargoId?: number | null }) => {
     if (editing) {
       const payload: Parameters<typeof userService.update>[1] = {
-        name:  values.name,
-        login: values.login,
-        role:  values.role,
+        name:    values.name,
+        login:   values.login,
+        role:    values.role,
+        cargoId: values.cargoId ?? null,
         ...(values.password ? { password: values.password } : {}),
       }
       updateMutation.mutate({ id: editing.id, payload })
     } else {
-      createMutation.mutate(values)
+      createMutation.mutate({
+        name:     values.name,
+        login:    values.login,
+        password: values.password,
+        role:     values.role,
+        cargoId:  values.cargoId ?? undefined,
+      })
     }
   }
 
@@ -180,6 +194,7 @@ export default function UsersPage() {
                 <th>Nome</th>
                 <th>Login</th>
                 <th>Perfil</th>
+                <th>Cargo</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -192,6 +207,7 @@ export default function UsersPage() {
                     <td className={styles.tdName}>{user.name}</td>
                     <td className={styles.tdLogin}>{user.login}</td>
                     <td><Tag color={role.color}>{role.label}</Tag></td>
+                    <td>{user.cargoName ? <Tag color="geekblue">{user.cargoName}</Tag> : <span style={{ color: '#ccc', fontSize: 12 }}>—</span>}</td>
                     <td>
                       <div className={styles.actions}>
                         <Tooltip title="Editar">
@@ -272,17 +288,24 @@ export default function UsersPage() {
             />
           </Form.Item>
 
-          <Form.Item name="role" label={<span className={styles.fieldLabel}>Perfil de acesso</span>}
+          <Form.Item name="role" label={<span className={styles.fieldLabel}>Perfil base</span>}
             rules={[{ required: true, message: 'Selecione o perfil' }]}>
             <Select options={roleOptions} placeholder="Selecione o perfil" size="large" />
           </Form.Item>
 
-          {editing && (
-            <div className={styles.roleInfo}>
-              <span className={styles.roleInfoIcon}>ℹ️</span>
-              <span>Alterar o perfil afeta as permissões imediatamente após salvar.</span>
-            </div>
-          )}
+          <Form.Item name="cargoId" label={<span className={styles.fieldLabel}>Cargo (opcional)</span>}>
+            <Select
+              allowClear
+              placeholder="Selecione um cargo customizado"
+              size="large"
+              options={cargos.map(c => ({ value: c.id, label: c.name }))}
+            />
+          </Form.Item>
+
+          <div className={styles.roleInfo}>
+            <span className={styles.roleInfoIcon}>ℹ️</span>
+            <span>Se um cargo for atribuído, suas permissões substituem as do perfil base.</span>
+          </div>
         </Form>
       </Drawer>
 

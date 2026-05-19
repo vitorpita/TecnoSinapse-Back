@@ -1,9 +1,13 @@
 package com.gestaotecidos.api.service;
 
+import com.gestaotecidos.api.domain.Cargo;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.User;
 import com.gestaotecidos.api.dto.UserDtos;
 import com.gestaotecidos.api.exception.ConflictException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
+import com.gestaotecidos.api.repository.CargoRepository;
 import com.gestaotecidos.api.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +23,15 @@ public class UserService {
 
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
+    private final CargoRepository cargoRepository;
+    private final AuditLogService auditLogService;
 
-    public UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository repository, PasswordEncoder passwordEncoder,
+                       CargoRepository cargoRepository, AuditLogService auditLogService) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.cargoRepository = cargoRepository;
+        this.auditLogService = auditLogService;
     }
 
     public Page<UserDtos.Response> findAll(Pageable pageable) {
@@ -60,7 +69,18 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(data.password()));
         }
 
-        return mapToResponse(repository.save(user));
+        if (data.cargoId() != null) {
+            Cargo cargo = cargoRepository.findByIdAndActiveTrue(data.cargoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cargo", data.cargoId()));
+            user.setCargo(cargo);
+        } else {
+            user.setCargo(null);
+        }
+
+        var saved = repository.save(user);
+        auditLogService.log(AuditModule.USERS, AuditAction.UPDATE, saved.getId(), saved.getName(),
+                "Login: " + saved.getLogin() + " | Perfil: " + saved.getRole().name());
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -68,6 +88,8 @@ public class UserService {
         var user = findEntityById(id);
         user.deactivate();
         repository.save(user);
+        auditLogService.log(AuditModule.USERS, AuditAction.DEACTIVATE, user.getId(), user.getName(),
+                "Login: " + user.getLogin());
     }
 
     private User findEntityById(Long id) {
@@ -76,11 +98,14 @@ public class UserService {
     }
 
     public UserDtos.Response mapToResponse(User user) {
+        var cargo = user.getCargo();
         return new UserDtos.Response(
                 user.getId(),
                 user.getName(),
                 user.getLogin(),
                 user.getRole(),
+                cargo != null ? cargo.getId() : null,
+                cargo != null ? cargo.getName() : null,
                 user.isActive(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()

@@ -15,6 +15,8 @@ import CashRegisterPage    from '@/features/cash-register/pages/CashRegisterPage
 import PaymentPage      from '@/features/payment/pages/PaymentsPage'
 import NewPaymentPage  from '@/features/payment/pages/NewPaymentPage'
 import ReportsPage      from '@/features/reports/pages/ReportsPage'
+import CargoPage        from '@/features/cargos/pages/CargoPage'
+import AuditLogPage     from '@/features/audit-logs/pages/AuditLogPage'
 
 
 export default function AppRouter() {
@@ -38,6 +40,8 @@ export default function AppRouter() {
             <Route path="/persons"         element={<PersonPage />} />
             <Route path="/categories"      element={<CategoryPage />} />
             <Route path="/users"           element={<UsersPage />} />
+            <Route path="/cargos"          element={<CargoPage />} />
+            <Route path="/audit-logs"      element={<AuditLogPage />} />
             <Route path="/reports"         element={<ReportsPage />} />
             <Route path="*"                element={<Navigate to="/" replace />} />
           </Route>

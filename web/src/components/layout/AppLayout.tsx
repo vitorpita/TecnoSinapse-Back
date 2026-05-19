@@ -1,48 +1,53 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Tooltip, Modal } from 'antd'
 import { useAuthStore } from '@/store/authStore'
+import { usePermission } from '@/hooks/usePermission'
 import styles from './AppLayout.module.css'
 import {
   LayoutDashboard, ShoppingCart, Package, ArrowLeftRight,
   Truck, Wallet, CreditCard, Users, Tag, UserCog,
-  BarChart3, Scissors, LogOut, ChevronRight,
+  BarChart3, LogOut, ChevronRight, PanelLeftClose, PanelLeftOpen,
+  ShieldCheck, ClipboardList, User, Settings, Info, Camera,
 } from 'lucide-react'
 
 const menuItems = [
   {
     label: 'Principal',
     items: [
-      { key: '/',                icon: LayoutDashboard, label: 'Dashboard',      desc: 'Visão geral' },
-      { key: '/orders',          icon: ShoppingCart,    label: 'Pedidos',        desc: 'Gestão de pedidos' },
+      { key: '/',                icon: LayoutDashboard, label: 'Dashboard',      permission: null },
+      { key: '/orders',          icon: ShoppingCart,    label: 'Pedidos',        permission: 'order:read' },
     ],
   },
   {
     label: 'Estoque',
     items: [
-      { key: '/products',        icon: Package,         label: 'Produtos',       desc: 'Catálogo de tecidos' },
-      { key: '/stock',           icon: ArrowLeftRight,  label: 'Movimentações',  desc: 'Entradas e saídas' },
-      { key: '/purchase-orders', icon: Truck,           label: 'Compras',        desc: 'Pedidos de compra' },
+      { key: '/products',        icon: Package,         label: 'Produtos',       permission: 'product:read' },
+      { key: '/stock',           icon: ArrowLeftRight,  label: 'Movimentações',  permission: 'product:read' },
+      { key: '/purchase-orders', icon: Truck,           label: 'Compras',        permission: 'purchase:read' },
     ],
   },
   {
     label: 'Financeiro',
     items: [
-      { key: '/cash-register',   icon: Wallet,          label: 'Caixa',          desc: 'Controle de caixa' },
-      { key: '/payments',        icon: CreditCard,      label: 'Pagamentos',     desc: 'Recebimentos' },
+      { key: '/cash-register',   icon: Wallet,          label: 'Caixa',          permission: 'cash:read' },
+      { key: '/payments',        icon: CreditCard,      label: 'Pagamentos',     permission: 'cash:read' },
     ],
   },
   {
     label: 'Cadastros',
     items: [
-      { key: '/persons',         icon: Users,           label: 'Pessoas',        desc: 'Clientes e fornecedores' },
-      { key: '/categories',      icon: Tag,             label: 'Categorias',     desc: 'Tipos de produto' },
-      { key: '/users',           icon: UserCog,         label: 'Usuários',       desc: 'Controle de acesso' },
+      { key: '/persons',         icon: Users,           label: 'Pessoas',        permission: 'person:read' },
+      { key: '/categories',      icon: Tag,             label: 'Categorias',     permission: 'category:read' },
+      { key: '/users',           icon: UserCog,         label: 'Usuários',       permission: 'user:read' },
+      { key: '/cargos',          icon: ShieldCheck,     label: 'Cargos',         permission: 'admin' },
     ],
   },
   {
     label: 'Relatórios',
     items: [
-      { key: '/reports',         icon: BarChart3,       label: 'Relatórios',     desc: 'Análises gerenciais' },
+      { key: '/reports',         icon: BarChart3,       label: 'Relatórios',     permission: 'report:read' },
+      { key: '/audit-logs',      icon: ClipboardList,   label: 'Logs',           permission: 'admin' },
     ],
   },
 ]
@@ -60,6 +65,8 @@ const pageMeta: Record<string, { title: string; sub: string }> = {
   '/persons':         { title: 'Pessoas',           sub: 'Clientes, fornecedores e colaboradores' },
   '/categories':      { title: 'Categorias',        sub: 'Tipos de produto' },
   '/users':           { title: 'Usuários',          sub: 'Controle de acesso ao sistema' },
+  '/cargos':          { title: 'Cargos',            sub: 'Gerenciamento de permissões por cargo' },
+  '/audit-logs':      { title: 'Logs de Auditoria', sub: 'Histórico de ações do sistema' },
   '/reports':         { title: 'Relatórios',        sub: 'Análises gerenciais' },
 }
 
@@ -69,82 +76,232 @@ function getPageMeta(pathname: string) {
   return { title: 'TecnoSinapse', sub: '' }
 }
 
+const COLLAPSE_KEY   = 'sidebar_collapsed'
+const AVATAR_KEY     = 'ts-avatar'
+const FULL_SCREEN_ROUTES = ['/orders']
+
 export default function AppLayout() {
-  const navigate   = useNavigate()
-  const location   = useLocation()
+  const navigate  = useNavigate()
+  const location  = useLocation()
   const { user, clearAuth } = useAuthStore()
-  const [hovered, setHovered] = useState<string | null>(null)
+  const { has, isAdmin } = usePermission()
+  const [hovered,        setHovered]        = useState<string | null>(null)
+  const [collapsed,      setCollapsed]      = useState(() => {
+    const saved = localStorage.getItem(COLLAPSE_KEY)
+    if (saved !== null) return saved === 'true'
+    return FULL_SCREEN_ROUTES.includes(location.pathname)
+  })
+  const [dropdownOpen,   setDropdownOpen]   = useState(false)
+  const [aboutOpen,      setAboutOpen]      = useState(false)
+  const [avatarUrl,      setAvatarUrl]      = useState<string | null>(
+    () => localStorage.getItem(AVATAR_KEY)
+  )
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (FULL_SCREEN_ROUTES.includes(location.pathname) && !collapsed) {
+      setCollapsed(true)
+      localStorage.setItem(COLLAPSE_KEY, 'true')
+    }
+  }, [location.pathname])
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    if (dropdownOpen) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [dropdownOpen])
+
+  const toggleCollapse = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem(COLLAPSE_KEY, String(next))
+  }
 
   const handleLogout = () => {
     clearAuth()
     navigate('/login', { replace: true })
   }
 
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string
+      setAvatarUrl(url)
+      localStorage.setItem(AVATAR_KEY, url)
+    }
+    reader.readAsDataURL(file)
+    setDropdownOpen(false)
+  }
+
   const getInitials = (name: string) =>
     name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
+
+  const canSeeItem = (permission: string | null): boolean => {
+    if (permission === null) return true
+    if (permission === 'admin') return isAdmin
+    return isAdmin || has(permission)
+  }
 
   const meta = getPageMeta(location.pathname)
 
   return (
     <div className={styles.root}>
 
-      {/* ── Sidebar ──────────────────────────────── */}
-      <aside className={styles.sidebar}>
+      <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
         <div className={styles.sidebarLogo} onClick={() => navigate('/')}>
-          <div className={styles.logoText}>Tecno<span>Sinapse</span></div>
-          <p className={styles.logoSub}>Gestão de Tecidos</p>
+          {collapsed ? (
+            <div className={styles.logoIcon}>T<span>S</span></div>
+          ) : (
+            <>
+              <div className={styles.logoText}>Tecno<span>Sinapse</span></div>
+              <p className={styles.logoSub}>Gestão de Tecidos</p>
+            </>
+          )}
         </div>
 
         <nav className={styles.sidebarMenu}>
-          {menuItems.map((group) => (
-            <div key={group.label}>
-              <div className={styles.menuLabel}>{group.label}</div>
-              {group.items.map((item) => {
-                const Icon     = item.icon
-                const isActive = item.key === '/'
-                  ? location.pathname === '/'
-                  : location.pathname === item.key || location.pathname.startsWith(item.key + '/')
-                const isHov    = hovered === item.key
-                return (
-                  <div
-                    key={item.key}
-                    className={`${styles.menuItem} ${isActive ? styles.active : ''}`}
-                    onClick={() => navigate(item.key)}
-                    onMouseEnter={() => setHovered(item.key)}
-                    onMouseLeave={() => setHovered(null)}
-                  >
-                    <Icon size={15} className={styles.menuIcon} />
-                    <span className={styles.menuLabel2}>{item.label}</span>
-                    {(isActive || isHov) && <ChevronRight size={11} className={styles.chevron} />}
-                  </div>
-                )
-              })}
-            </div>
-          ))}
+          {menuItems.map((group) => {
+            const visibleItems = group.items.filter(item => canSeeItem(item.permission))
+            if (visibleItems.length === 0) return null
+            return (
+              <div key={group.label}>
+                {!collapsed && <div className={styles.menuLabel}>{group.label}</div>}
+                {collapsed && <div className={styles.menuLabelDot} />}
+                {visibleItems.map((item) => {
+                  const Icon     = item.icon
+                  const isActive = item.key === '/'
+                    ? location.pathname === '/'
+                    : location.pathname === item.key || location.pathname.startsWith(item.key + '/')
+                  const isHov    = hovered === item.key
+
+                  const menuEl = (
+                    <div
+                      key={item.key}
+                      className={`${styles.menuItem} ${isActive ? styles.active : ''} ${collapsed ? styles.menuItemCollapsed : ''}`}
+                      onClick={() => navigate(item.key)}
+                      onMouseEnter={() => setHovered(item.key)}
+                      onMouseLeave={() => setHovered(null)}
+                    >
+                      <Icon size={15} className={styles.menuIcon} />
+                      {!collapsed && <span className={styles.menuLabel2}>{item.label}</span>}
+                      {!collapsed && (isActive || isHov) && <ChevronRight size={11} className={styles.chevron} />}
+                    </div>
+                  )
+
+                  return collapsed ? (
+                    <Tooltip key={item.key} title={item.label} placement="right">
+                      {menuEl}
+                    </Tooltip>
+                  ) : menuEl
+                })}
+              </div>
+            )
+          })}
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <div className={styles.logoutBtn} onClick={handleLogout}>
-            <LogOut size={13} />
-            <span>Sair do sistema</span>
-          </div>
-          <div className={styles.version}>v1.0.0 · TecnoSinapse</div>
+          <button className={styles.collapseBtn} onClick={toggleCollapse} title={collapsed ? 'Expandir menu' : 'Recolher menu'}>
+            {collapsed
+              ? <PanelLeftOpen  size={14} />
+              : <><PanelLeftClose size={14} /><span>Recolher</span></>
+            }
+          </button>
+          {!collapsed && (
+            <div className={styles.logoutBtn} onClick={handleLogout}>
+              <LogOut size={13} />
+              <span>Sair do sistema</span>
+            </div>
+          )}
+          {collapsed && (
+            <Tooltip title="Sair do sistema" placement="right">
+              <div className={styles.logoutBtnIcon} onClick={handleLogout}>
+                <LogOut size={13} />
+              </div>
+            </Tooltip>
+          )}
+          {!collapsed && <div className={styles.version}>v1.0.0 · TecnoSinapse</div>}
         </div>
       </aside>
 
-      {/* ── Main ─────────────────────────────────── */}
-      <div className={styles.main}>
+      <div className={`${styles.main} ${collapsed ? styles.mainCollapsed : ''}`}>
         <header className={styles.topbar}>
           <div>
             <h1 className={styles.topbarTitle}>{meta.title}</h1>
             <p className={styles.topbarSub}>{meta.sub}</p>
           </div>
-          <div className={styles.topbarUser}>
+
+          <div className={styles.topbarUser} ref={dropdownRef}>
             <div className={styles.userInfo}>
               <span className={styles.userName}>{user?.name ?? 'Usuário'}</span>
-              <span className={styles.userRole}>{user?.role ?? ''}</span>
+              <span className={styles.userRole}>{user?.cargoName ?? user?.role ?? ''}</span>
             </div>
-            <div className={styles.avatar}>{getInitials(user?.name ?? 'U')}</div>
+
+            <div
+              className={`${styles.avatarWrap} ${dropdownOpen ? styles.avatarWrapOpen : ''}`}
+              onClick={() => setDropdownOpen(o => !o)}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} className={styles.avatarImg} alt="avatar" />
+              ) : (
+                <div className={styles.avatar}>{getInitials(user?.name ?? 'U')}</div>
+              )}
+            </div>
+
+            {dropdownOpen && (
+              <div className={styles.profileDropdown}>
+                <div className={styles.profileDropdownHeader}>
+                  <div className={styles.profileDropdownName}>{user?.name}</div>
+                  <div className={styles.profileDropdownRole}>{user?.cargoName ?? user?.role}</div>
+                </div>
+                <div className={styles.profileDropdownDivider} />
+                <button
+                  className={styles.profileDropdownItem}
+                  onClick={() => { fileInputRef.current?.click() }}
+                >
+                  <Camera size={14} /> Alterar foto
+                </button>
+                <button
+                  className={styles.profileDropdownItem}
+                  onClick={() => { setDropdownOpen(false); navigate('/users') }}
+                >
+                  <Settings size={14} /> Gerenciar usuários
+                </button>
+                <button
+                  className={styles.profileDropdownItem}
+                  onClick={() => { setDropdownOpen(false); navigate('/users') }}
+                >
+                  <User size={14} /> Meu perfil
+                </button>
+                <div className={styles.profileDropdownDivider} />
+                <button
+                  className={styles.profileDropdownItem}
+                  onClick={() => { setDropdownOpen(false); setAboutOpen(true) }}
+                >
+                  <Info size={14} /> Sobre o sistema
+                </button>
+                <button
+                  className={`${styles.profileDropdownItem} ${styles.profileDropdownItemDanger}`}
+                  onClick={handleLogout}
+                >
+                  <LogOut size={14} /> Sair
+                </button>
+              </div>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleAvatarUpload}
+            />
           </div>
         </header>
 
@@ -152,6 +309,28 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <Modal
+        open={aboutOpen}
+        onCancel={() => setAboutOpen(false)}
+        footer={null}
+        title="Sobre o Sistema"
+        centered
+        width={400}
+      >
+        <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
+          <div style={{ fontFamily: "'Exo 2', sans-serif", fontSize: 22, fontWeight: 900, color: '#042C53', marginBottom: 4 }}>
+            Tecno<span style={{ color: '#378ADD' }}>Sinapse</span>
+          </div>
+          <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Gestão de Tecidos · v1.0.0</div>
+          <div style={{ fontSize: 13, color: '#555', lineHeight: 1.6 }}>
+            Sistema integrado para gestão de pedidos, estoque, financeiro e relatórios de loja de tecidos.
+          </div>
+          <div style={{ marginTop: 16, fontSize: 11, color: '#aaa' }}>
+            Desenvolvido por TecnoSinapse © 2025
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

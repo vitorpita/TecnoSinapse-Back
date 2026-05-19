@@ -18,6 +18,18 @@ const MOVEMENT_TYPES = [
   { value: 'SAIDA', label: '⬆ Saída — Reduz o caixa' },
 ]
 
+const MOVEMENT_DISPLAY: Record<string, { label: string; color: string; prefix: string; cssClass: string }> = {
+  ENTRADA:      { label: '⬇ Entrada',     color: 'green',  prefix: '+', cssClass: 'amountIn'  },
+  RECEBIMENTO:  { label: '💳 Recebimento', color: 'blue',   prefix: '+', cssClass: 'amountIn'  },
+  SUPRIMENTO:   { label: '⬇ Suprimento',  color: 'green',  prefix: '+', cssClass: 'amountIn'  },
+  ABERTURA:     { label: '🔓 Abertura',    color: 'geekblue', prefix: '+', cssClass: 'amountIn' },
+  SAIDA:        { label: '⬆ Saída',       color: 'red',    prefix: '-', cssClass: 'amountOut' },
+  SANGRIA:      { label: '⬆ Sangria',     color: 'volcano',prefix: '-', cssClass: 'amountOut' },
+  FECHAMENTO:   { label: '🔒 Fechamento', color: 'red',    prefix: '-', cssClass: 'amountOut' },
+  ESTORNO:      { label: '↩ Estorno',     color: 'orange', prefix: '+', cssClass: 'amountIn'  },
+  TRANSFERENCIA:{ label: '↔ Transf.',     color: 'cyan',   prefix: '',  cssClass: 'amountIn'  },
+}
+
 interface HttpError extends Error {
   response?: {
     data?: {
@@ -354,25 +366,20 @@ export default function CashRegisterPage() {
                       <td className={styles.tdId}>#{movement.id}</td>
                       <td className={styles.tdDesc}>{movement.description}</td>
                       <td>
-                        <Tag
-                          color={movement.type === 'ENTRADA' ? 'green' : 'red'}
-                        >
-                          {movement.type === 'ENTRADA'
-                            ? '⬇ Entrada'
-                            : '⬆ Saída'}
-                        </Tag>
+                        {(() => {
+                          const d = MOVEMENT_DISPLAY[movement.type] ?? { label: movement.type, color: 'default', prefix: '', cssClass: 'amountIn' }
+                          return <Tag color={d.color}>{d.label}</Tag>
+                        })()}
                       </td>
                       <td className={styles.tdAmount}>
-                        <span
-                          className={
-                            movement.type === 'ENTRADA'
-                              ? styles.amountIn
-                              : styles.amountOut
-                          }
-                        >
-                          {movement.type === 'ENTRADA' ? '+' : '-'}{' '}
-                          {formatCurrency(movement.amount)}
-                        </span>
+                        {(() => {
+                          const d = MOVEMENT_DISPLAY[movement.type] ?? { label: movement.type, color: 'default', prefix: '', cssClass: 'amountIn' }
+                          return (
+                            <span className={styles[d.cssClass as keyof typeof styles]}>
+                              {d.prefix} {formatCurrency(movement.amount)}
+                            </span>
+                          )
+                        })()}
                       </td>
                       <td className={styles.tdDate}>
                         {formatDate(movement.createdAt)}

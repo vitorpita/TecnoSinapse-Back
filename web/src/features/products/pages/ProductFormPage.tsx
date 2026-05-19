@@ -53,7 +53,7 @@ export default function ProductFormPage() {
   const { data: categoriesData } = useQuery({
     queryKey: ['product-categories'],
     queryFn: productService.getCategories,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   })
 
   const { data: providersData } = useQuery({
@@ -233,7 +233,19 @@ export default function ProductFormPage() {
                       placeholder="Selecione a categoria"
                       size="large"
                       allowClear
-                      options={categories.map(c => ({ value: c.id, label: c.name }))}
+                      options={categories.map(c => ({
+                      value: c.id,
+                      label: c.name,
+                      desc:  c.description,
+                    }))}
+                    optionRender={(opt) => (
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{opt.data.label}</div>
+                        {opt.data.desc && (
+                          <div style={{ fontSize: 11, color: '#888', marginTop: 1 }}>{opt.data.desc}</div>
+                        )}
+                      </div>
+                    )}
                     />
                   </Form.Item>
                 </Col>

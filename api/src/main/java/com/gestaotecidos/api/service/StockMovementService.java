@@ -5,6 +5,7 @@ import com.gestaotecidos.api.domain.Enums.StockMovementType;
 import com.gestaotecidos.api.dto.StockMovementDtos;
 import com.gestaotecidos.api.exception.BusinessException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
+import com.gestaotecidos.api.repository.CashRegisterRepository;
 import com.gestaotecidos.api.repository.ProductRepository;
 import com.gestaotecidos.api.repository.StockMovementRepository;
 import org.springframework.data.domain.Page;
@@ -17,14 +18,24 @@ public class StockMovementService {
 
     private final StockMovementRepository repository;
     private final ProductRepository productRepository;
+    private final CashRegisterRepository cashRegisterRepository;
 
-    public StockMovementService(StockMovementRepository repository, ProductRepository productRepository) {
+    public StockMovementService(StockMovementRepository repository,
+                                ProductRepository productRepository,
+                                CashRegisterRepository cashRegisterRepository) {
         this.repository = repository;
         this.productRepository = productRepository;
+        this.cashRegisterRepository = cashRegisterRepository;
     }
 
     @Transactional
     public StockMovementDtos.Response create(StockMovementDtos.Request data) {
+        if (data.type() == StockMovementType.SAIDA || data.type() == StockMovementType.AJUSTE) {
+            cashRegisterRepository.findOpenRegister()
+                    .orElseThrow(() -> new BusinessException(
+                            "Não há caixa aberto. Abra o caixa antes de registrar saídas ou ajustes de estoque."));
+        }
+
         var product = productRepository.findByIdAndActiveTrue(data.productId())
                 .orElseThrow(() -> new ResourceNotFoundException("Produto", data.productId()));
 

@@ -3,11 +3,13 @@ import { api } from '@/libs/axios'
 export type UserRole = 'ADMIN' | 'GERENTE' | 'VENDEDOR'
 
 export interface UserRecord {
-  id:      number
-  name:    string
-  login:   string
-  role:    UserRole
-  active?: boolean
+  id:         number
+  name:       string
+  login:      string
+  role:       UserRole
+  cargoId?:   number
+  cargoName?: string
+  active?:    boolean
 }
 
 export interface CreateUserRequest {
@@ -15,13 +17,15 @@ export interface CreateUserRequest {
   login:    string
   password: string
   role:     UserRole
+  cargoId?: number
 }
 
 export interface UpdateUserRequest {
-  name:     string
-  login:    string
-  role:     UserRole
+  name:      string
+  login:     string
+  role:      UserRole
   password?: string
+  cargoId?:  number | null
 }
 
 export interface PageResponse<T> {

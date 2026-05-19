@@ -291,7 +291,7 @@ export default function OrdersPage() {
                             </Tooltip>
                           )}
 
-                          {(order.status === 'FATURADO' || order.status === 'APROVADO') && (
+                          {order.status === 'FATURADO' && (
                             <Tooltip title="Registrar pagamento">
                               <button
                                 className={`${styles.actionBtn} ${styles.actionPayment}`}

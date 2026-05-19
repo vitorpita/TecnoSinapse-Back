@@ -17,7 +17,7 @@ public class CashMovement extends BaseDomain {
     private CashRegister cashRegister;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     private CashMovementType type;
 
     @Column(nullable = false, precision = 15, scale = 2)
