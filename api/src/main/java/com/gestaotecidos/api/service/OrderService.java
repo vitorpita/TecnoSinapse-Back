@@ -7,6 +7,7 @@ import com.gestaotecidos.api.domain.Enums.PersonRole;
 import com.gestaotecidos.api.dto.OrderDtos;
 import com.gestaotecidos.api.exception.BusinessException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
+import com.gestaotecidos.api.repository.CashRegisterRepository;
 import com.gestaotecidos.api.repository.OrderRepository;
 import com.gestaotecidos.api.repository.PersonRepository;
 import com.gestaotecidos.api.repository.ProductRepository;
@@ -28,17 +29,20 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final FinancialInstallmentService installmentService;
+    private final CashRegisterRepository cashRegisterRepository;
 
     public OrderService(OrderRepository orderRepository,
                         PersonRepository personRepository,
                         UserRepository userRepository,
                         ProductRepository productRepository,
-                        FinancialInstallmentService installmentService) {
+                        FinancialInstallmentService installmentService,
+                        CashRegisterRepository cashRegisterRepository) {
         this.orderRepository = orderRepository;
         this.personRepository = personRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.installmentService = installmentService;
+        this.cashRegisterRepository = cashRegisterRepository;
     }
 
     @Transactional
@@ -93,6 +97,9 @@ public class OrderService {
         if (order.getStatus() != OrderStatus.APROVADO) {
             throw new BusinessException("Somente pedidos APROVADOS podem ser faturados.");
         }
+
+        cashRegisterRepository.findOpenRegister().orElseThrow(() ->
+                new BusinessException("Não há caixa aberto. Abra o caixa antes de faturar o pedido."));
 
         if (req != null && req.paymentMethod() != null) {
             order.setPaymentMethod(req.paymentMethod());
@@ -155,8 +162,9 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<OrderDtos.Response> findAll(Pageable pageable) {
-        return orderRepository.findByActiveTrue(pageable).map(this::mapToResponse);
+    public Page<OrderDtos.Response> findAll(String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search : "";
+        return orderRepository.findByActiveTrueAndSearch(searchParam, pageable).map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)

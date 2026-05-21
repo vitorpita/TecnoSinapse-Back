@@ -30,8 +30,9 @@ public class ProductController {
     @GetMapping
     @PreAuthorize("hasAuthority('product:read')")
     public ResponseEntity<Page<ProductDtos.Response>> listAll(
-            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(pageable));
+            @PageableDefault(size = 20, sort = "name") Pageable pageable,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(service.findAll(search, pageable));
     }
 
     @GetMapping("/{id}")

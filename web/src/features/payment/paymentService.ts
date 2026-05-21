@@ -64,9 +64,9 @@ export interface PageResponse<T> {
 }
 
 export const paymentService = {
-  list: async (page = 0, size = 20, status?: string): Promise<PageResponse<PaymentRecord>> => {
+  list: async (page = 0, size = 20, _status?: string, search?: string): Promise<PageResponse<PaymentRecord>> => {
     const { data } = await api.get('/payments', {
-      params: { page, size, ...(status ? { status } : {}), sort: 'createdAt,desc' },
+      params: { page, size, sort: 'createdAt,desc', ...(search ? { search } : {}) },
     })
     if (Array.isArray(data)) {
       return { content: data, totalElements: data.length, totalPages: 1, number: 0, size: data.length }

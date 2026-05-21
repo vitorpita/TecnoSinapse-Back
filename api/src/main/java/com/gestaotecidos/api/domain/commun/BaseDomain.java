@@ -38,6 +38,10 @@ import java.time.LocalDateTime;
         this.active = false;
     }
 
+    public void reactivate(){
+        this.active = true;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public boolean isActive () { return active; }

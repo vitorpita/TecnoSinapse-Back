@@ -3,6 +3,7 @@ import {
   Drawer, Form, Select, Button, InputNumber, Input,
   Divider, Tag, Space, Spin, Modal, DatePicker, Row, Col,
 } from 'antd'
+import { MoneyInput } from '@/components/MoneyInput'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -189,7 +190,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
           <div className={styles.loadingWrap}><Spin /></div>
         ) : (
           <form noValidate>
-            <Form layout="vertical" component={false} requiredMark={false}>
+            <Form layout="vertical" component={false}>
 
               {/* ── Dados gerais ── */}
               <div className={styles.sectionTitle}>Dados Gerais</div>
@@ -281,11 +282,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                       name="freightCost"
                       control={control}
                       render={({ field }) => (
-                        <InputNumber
-                          {...field}
-                          min={0} step={0.01} precision={2} prefix="R$"
-                          style={{ width: '100%' }} size="large"
-                        />
+                        <MoneyInput {...field} style={{ width: '100%' }} size="large" />
                       )}
                     />
                   </Form.Item>
@@ -299,11 +296,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                       name="discount"
                       control={control}
                       render={({ field }) => (
-                        <InputNumber
-                          {...field}
-                          min={0} step={0.01} precision={2} prefix="R$"
-                          style={{ width: '100%' }} size="large"
-                        />
+                        <MoneyInput {...field} style={{ width: '100%' }} size="large" />
                       )}
                     />
                   </Form.Item>
@@ -388,7 +381,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                           name={`items.${index}.unitCost`}
                           control={control}
                           render={({ field: f }) => (
-                            <InputNumber {...f} min={0.01} step={0.01} precision={2} prefix="R$" style={{ width: '100%' }} size="large" />
+                            <MoneyInput {...f} min={0.01} style={{ width: '100%' }} size="large" />
                           )}
                         />
                       </Form.Item>

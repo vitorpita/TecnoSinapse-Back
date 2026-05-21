@@ -35,8 +35,9 @@ public class ProductService {
         return mapToResponse(repository.save(product));
     }
 
-    public Page<ProductDtos.Response> findAll(Pageable pageable) {
-        return repository.findByActiveTrue(pageable).map(this::mapToResponse);
+    public Page<ProductDtos.Response> findAll(String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search : "";
+        return repository.findByActiveTrueAndSearch(searchParam, pageable).map(this::mapToResponse);
     }
 
     public ProductDtos.Response findById(Long id) {

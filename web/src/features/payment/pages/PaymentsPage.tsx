@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { App, Button, Drawer, Form, InputNumber, Pagination, Select, Spin, Tag, Tooltip, Empty, Divider } from 'antd'
+import { App, Button, Drawer, Form, Pagination, Select, Spin, Tag, Tooltip, Empty, Divider } from 'antd'
+import { MoneyInput } from '@/components/MoneyInput'
 import { PlusOutlined, SearchOutlined, EyeOutlined, DollarOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { paymentService, type PaymentRecord, type PaymentStatus, type PaymentMethod } from '../paymentService'
@@ -88,8 +89,8 @@ export default function PaymentsPage() {
   // ── Queries ─────────────────────────────────────────────────────────────────
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['payments', page, statusFilter],
-    queryFn:  () => paymentService.list(page, 20, statusFilter || undefined),
+    queryKey: ['payments', page, statusFilter, search],
+    queryFn:  () => paymentService.list(page, 20, statusFilter || undefined, search || undefined),
   })
 
   // ── Mutations ────────────────────────────────────────────────────────────────
@@ -113,14 +114,9 @@ export default function PaymentsPage() {
 
   const payments = data?.content ?? []
 
-  const filtered = payments.filter((p: PaymentRecord) => {
-    const matchesSearch = !search ||
-      String(p.orderId).includes(search) ||
-      p.clientName?.toLowerCase().includes(search.toLowerCase()) ||
-      p.clientDocument?.includes(search)
-    const matchesStatus = !statusFilter || p.paymentStatus === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  const filtered = payments.filter((p: PaymentRecord) =>
+    !statusFilter || p.paymentStatus === statusFilter
+  )
 
   const totalPendente = payments
     .filter(p => p.paymentStatus === 'PENDENTE')
@@ -192,7 +188,7 @@ export default function PaymentsPage() {
               className={styles.searchInput}
               placeholder="Buscar por pedido, cliente ou documento..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(0) }}
             />
           </div>
           <Select
@@ -429,7 +425,7 @@ export default function PaymentsPage() {
           </div>
         )}
 
-        <Form form={registerForm} layout="vertical" onFinish={onRegisterPayment} requiredMark={false}>
+        <Form form={registerForm} layout="vertical" onFinish={onRegisterPayment}>
           <Form.Item
             name="paymentMethod"
             label={<span className={styles.fieldLabel}>Método de Pagamento</span>}
@@ -443,10 +439,9 @@ export default function PaymentsPage() {
             label={<span className={styles.fieldLabel}>Valor Recebido (R$)</span>}
             rules={[{ required: true, message: 'Informe o valor' }]}
           >
-            <InputNumber
-              min={0.01} step={0.01} precision={2}
+            <MoneyInput
+              min={0.01}
               size="large" style={{ width: '100%' }}
-              prefix="R$"
             />
           </Form.Item>
 

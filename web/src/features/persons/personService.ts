@@ -44,12 +44,13 @@ export const personService = {
     return data
   },
 
-  list: async (page = 0, size = 20, search?: string): Promise<PageResponse<PersonRecord>> => {
+  list: async (page = 0, size = 20, search?: string, inactive = false): Promise<PageResponse<PersonRecord>> => {
     const response = await api.get('/persons', {
       params: {
         page,
         size,
         ...(search ? { search } : {}),
+        ...(inactive ? { inactive: true } : {}),
       },
     })
     return response.data
@@ -63,4 +64,10 @@ export const personService = {
   delete: async (id: number): Promise<void> => {
     await api.delete(`/persons/${id}`)
   },
+
+  reactivate: async (id: number): Promise<PersonRecord> => {
+    const { data } = await api.patch(`/persons/${id}/reactivate`)
+    return data
+  },
+
 }

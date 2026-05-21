@@ -33,7 +33,11 @@ public class PersonController {
     public ResponseEntity<Page<PersonDtos.Response>> listAll(
             @PageableDefault(size = 20, sort = "name") Pageable pageable,
             @RequestParam(required = false) PersonRole role,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "false") boolean inactive) {
+        if (inactive) {
+            return ResponseEntity.ok(service.findInactive(pageable));
+        }
         if (role != null) {
             return ResponseEntity.ok(service.findByRole(role, search, pageable));
         }
@@ -57,5 +61,11 @@ public class PersonController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/reactivate")
+    @PreAuthorize("hasAuthority('person:write')")
+    public ResponseEntity<PersonDtos.Response> reactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(service.reactivate(id));
     }
 }

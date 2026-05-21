@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface PersonRepository extends JpaRepository<Person, Long> {
 
     Page<Person> findByActiveTrue(Pageable pageable);
+    Page<Person> findByActiveFalse(Pageable pageable);
     Optional<Person> findByIdAndActiveTrue(Long id);
     Optional<Person> findByDocumentAndActiveTrue(String document);
     Optional<Person> findByDocument(String document);

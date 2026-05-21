@@ -210,7 +210,7 @@ export default function CargoPage() {
           </div>
         }
       >
-        <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item name="name" label={<span className={styles.fieldLabel}>Nome do cargo</span>}
             rules={[{ required: true, message: 'Informe o nome' }, { max: 100, message: 'Máx. 100 caracteres' }]}>
             <Input placeholder="Ex: Vendedor Sênior" size="large" />

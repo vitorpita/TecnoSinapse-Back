@@ -23,8 +23,21 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasAuthority('user:read')")
     public ResponseEntity<Page<UserDtos.Response>> listAll(
-            @PageableDefault(size = 20, sort = "name") Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(pageable));
+            @PageableDefault(size = 20, sort = "name") Pageable pageable,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "false") boolean inactive) {
+        return ResponseEntity.ok(service.findAll(pageable, search, inactive));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDtos.Response> getMe() {
+        return ResponseEntity.ok(service.getMe());
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDtos.Response> updateMe(
+            @RequestBody @Valid UserDtos.ProfileUpdateRequest data) {
+        return ResponseEntity.ok(service.updateMe(data));
     }
 
     @GetMapping("/{id}")
@@ -46,5 +59,11 @@ public class UserController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/reactivate")
+    @PreAuthorize("hasAuthority('user:write')")
+    public ResponseEntity<UserDtos.Response> reactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(service.reactivate(id));
     }
 }

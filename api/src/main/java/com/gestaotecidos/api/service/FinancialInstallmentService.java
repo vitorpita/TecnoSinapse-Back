@@ -4,6 +4,7 @@ import com.gestaotecidos.api.domain.FinancialInstallment;
 import com.gestaotecidos.api.domain.Order;
 import com.gestaotecidos.api.domain.Payment;
 import com.gestaotecidos.api.domain.Enums.InstallmentStatus;
+import com.gestaotecidos.api.domain.Enums.PaymentMethod;
 import com.gestaotecidos.api.dto.FinancialInstallmentDtos;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
 import com.gestaotecidos.api.repository.FinancialInstallmentRepository;
@@ -33,7 +34,14 @@ public class FinancialInstallmentService {
     @Transactional
     public List<FinancialInstallment> generateForOrder(Order order) {
         String condition = order.getPaymentCondition();
-        if (condition == null || condition.isBlank()) {
+
+        // Métodos à vista sempre geram vencimento para hoje (dia 0)
+        PaymentMethod method = order.getPaymentMethod();
+        boolean isInstantMethod = method == PaymentMethod.DINHEIRO
+                || method == PaymentMethod.PIX
+                || method == PaymentMethod.CARTAO_DEBITO;
+
+        if (isInstantMethod || condition == null || condition.isBlank()) {
             condition = "0";
         }
 

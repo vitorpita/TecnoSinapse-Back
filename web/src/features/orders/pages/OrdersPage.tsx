@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Input, Select, Tag, Tooltip, Popconfirm, Pagination, Empty, Spin, Modal, Form } from 'antd'
+import { App, Button, Input, Select, Tag, Tooltip, Popconfirm, Pagination, Empty, Spin, Modal, Form } from 'antd'
 import { PlusOutlined, SearchOutlined, EyeOutlined,
   EditOutlined, CloseCircleOutlined, DollarOutlined,
   SendOutlined, CheckCircleOutlined, FileTextOutlined } from '@ant-design/icons'
@@ -23,6 +23,7 @@ const statusFilterOptions = [
 ]
 
 export default function OrdersPage() {
+  const { message } = App.useApp()
   const navigate = useNavigate()
   const [page,          setPage]          = useState(0)
   const [search,        setSearch]        = useState('')
@@ -36,7 +37,7 @@ export default function OrdersPage() {
   const [faturarPayMethod,   setFaturarPayMethod]   = useState<string | undefined>()
   const [faturarPayCond,     setFaturarPayCond]     = useState('')
 
-  const { data, isLoading, isError, refetch } = useOrders(page)
+  const { data, isLoading, isError, refetch } = useOrders(page, search)
   const deleteOrder     = useDeleteOrder()
   const cancelOrder     = useCancelOrder()
   const awaitApproval   = useAwaitApprovalOrder()
@@ -45,15 +46,9 @@ export default function OrdersPage() {
 
   const orders = data?.content ?? []
 
-  const filtered = orders.filter((o: OrderResponse) => {
-    const matchSearch =
-      !search ||
-      o.clientName.toLowerCase().includes(search.toLowerCase()) ||
-      o.sellerName.toLowerCase().includes(search.toLowerCase()) ||
-      String(o.id).includes(search)
-    const matchStatus = !statusFilter || o.status === statusFilter
-    return matchSearch && matchStatus
-  })
+  const filtered = orders.filter((o: OrderResponse) =>
+    !statusFilter || o.status === statusFilter
+  )
 
   const handleNew = () => {
     setSelectedOrder(null)
@@ -101,16 +96,21 @@ export default function OrdersPage() {
 
   const handleFaturarConfirm = async () => {
     if (!faturarOrderId) return
-    await faturarOrder.mutateAsync({ id: faturarOrderId, paymentMethod: faturarPayMethod, paymentCondition: faturarPayCond || undefined })
-    setFaturarModalOpen(false)
-    navigate('/payments/new', {
-      state: {
-        orderId:          faturarOrderId,
-        orderTotal:       faturarOrderTotal,
-        paymentMethod:    faturarPayMethod,
-        paymentCondition: faturarPayCond || undefined,
-      },
-    })
+    try {
+      await faturarOrder.mutateAsync({ id: faturarOrderId, paymentMethod: faturarPayMethod, paymentCondition: faturarPayCond || undefined })
+      setFaturarModalOpen(false)
+      navigate('/payments/new', {
+        state: {
+          orderId:          faturarOrderId,
+          orderTotal:       faturarOrderTotal,
+          paymentMethod:    faturarPayMethod,
+          paymentCondition: faturarPayCond || undefined,
+        },
+      })
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      message.error(msg || 'Erro ao faturar pedido. Verifique o estoque e o caixa.')
+    }
   }
 
   const handleCancel = async (id: number) => {
@@ -138,7 +138,7 @@ export default function OrdersPage() {
               className={styles.searchInput}
               placeholder="Buscar por cliente, vendedor ou código..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(0) }}
             />
           </div>
           <Select
@@ -370,7 +370,12 @@ export default function OrdersPage() {
           <Form.Item label="Forma de Pagamento" required>
             <Select
               value={faturarPayMethod}
-              onChange={setFaturarPayMethod}
+              onChange={(v) => {
+                setFaturarPayMethod(v)
+                if (v === 'DINHEIRO' || v === 'PIX' || v === 'CARTAO_DEBITO') {
+                  setFaturarPayCond('')
+                }
+              }}
               placeholder="Selecione a forma de pagamento"
               size="large"
               options={[
@@ -384,12 +389,23 @@ export default function OrdersPage() {
               ]}
             />
           </Form.Item>
-          <Form.Item label="Condição de Pagamento">
+          <Form.Item
+            label="Condição de Pagamento"
+            style={{ marginBottom: 0 }}
+            extra={
+              <span style={{ minHeight: 20, display: 'block' }}>
+                {faturarPayMethod === 'DINHEIRO' || faturarPayMethod === 'PIX' || faturarPayMethod === 'CARTAO_DEBITO'
+                  ? 'Pagamento à vista — vencimento gerado para hoje.'
+                  : 'Ex: 30 (30 dias), 30/60 (parcelado). Vazio = à vista.'}
+              </span>
+            }
+          >
             <Input
               value={faturarPayCond}
               onChange={e => setFaturarPayCond(e.target.value)}
-              placeholder="Ex: 30/60/90 (opcional)"
+              placeholder="Deixe vazio para à vista"
               size="large"
+              disabled={faturarPayMethod === 'DINHEIRO' || faturarPayMethod === 'PIX' || faturarPayMethod === 'CARTAO_DEBITO'}
             />
           </Form.Item>
         </Form>

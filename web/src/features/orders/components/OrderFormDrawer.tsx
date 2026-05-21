@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { App, Drawer, Form, Select, Input, Button, InputNumber, Divider, Tag, Space, Spin, Modal } from 'antd'
+import { MoneyInput } from '@/components/MoneyInput'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -88,8 +89,8 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
       reset({
         clientId:         order.clientId,
         sellerId:         order.sellerId,
-        paymentMethod:    order.paymentMethod,
-        paymentCondition: order.paymentCondition,
+        paymentMethod:    order.paymentMethod ?? undefined,
+        paymentCondition: order.paymentCondition ?? undefined,
         items: order.items.map(i => ({
           productId: i.productId,
           quantity:  Number(i.quantity),
@@ -196,7 +197,7 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
           </div>
         ) : (
           <form noValidate>
-            <Form layout="vertical" component={false} requiredMark={false}>
+            <Form layout="vertical" component={false}>
               <Form.Item
                 label={<span className={styles.fieldLabel}>Cliente</span>}
                 validateStatus={errors.clientId ? 'error' : ''}
@@ -379,12 +380,9 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
                           name={`items.${index}.unitPrice`}
                           control={control}
                           render={({ field: f }) => (
-                            <InputNumber
+                            <MoneyInput
                               {...f}
                               min={0.01}
-                              step={0.01}
-                              precision={2}
-                              prefix="R$"
                               style={{ width: '100%' }}
                               size="large"
                             />

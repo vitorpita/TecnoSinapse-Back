@@ -94,6 +94,23 @@ public class CashRegisterService {
         return mapToResponse(repository.save(cashRegister));
     }
 
+    @Transactional
+    public void deleteMovement(Long cashId, Long movementId) {
+        var cashRegister = findEntityByIdWithMovements(cashId);
+
+        if (cashRegister.isClosed()) {
+            throw new BusinessException("Não é possível excluir movimentações de um caixa fechado.");
+        }
+
+        boolean removed = cashRegister.getMovements().removeIf(m -> m.getId().equals(movementId));
+
+        if (!removed) {
+            throw new ResourceNotFoundException("Movimentação", movementId);
+        }
+
+        repository.save(cashRegister);
+    }
+
     public CashRegisterDtos.Response findById(Long id) {
         return mapToResponse(findEntityByIdWithMovements(id));
     }

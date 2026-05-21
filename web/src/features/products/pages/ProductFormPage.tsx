@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Form, Input, InputNumber, Select, Spin, Row, Col } from 'antd'
+import { MoneyInput } from '@/components/MoneyInput'
 import { ArrowLeftOutlined, SaveOutlined, CloudUploadOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { productService, type CreateProductRequest } from '../productService'
@@ -206,7 +207,17 @@ export default function ProductFormPage() {
         </div>
       </div>
 
-      <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        requiredMark
+        scrollToFirstError
+        onFinishFailed={({ errorFields }) => {
+          const first = errorFields[0]?.errors[0]
+          if (first) message.error(`Campo obrigatório: ${first}`)
+        }}
+      >
         <div className={styles.layout}>
           <div className={styles.mainCol}>
             <div className={styles.section}>
@@ -294,12 +305,12 @@ export default function ProductFormPage() {
               <Row gutter={16}>
                 <Col span={8}>
                   <Form.Item name="unitPrice" label={fieldLabel('Preço de Venda (R$)')} rules={[{ required: true, message: 'Informe o preço de venda' }]}>
-                    <InputNumber min={0} step={0.01} precision={2} prefix="R$" style={{ width: '100%' }} size="large" placeholder="0,00" />
+                    <MoneyInput style={{ width: '100%' }} size="large" placeholder="0,00" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
                   <Form.Item name="purchasePrice" label={fieldLabel('Preço de Custo (R$)')} rules={[{ required: true, message: 'Informe o preço de custo' }]}>
-                    <InputNumber min={0} step={0.01} precision={2} prefix="R$" style={{ width: '100%' }} size="large" placeholder="0,00" />
+                    <MoneyInput style={{ width: '100%' }} size="large" placeholder="0,00" />
                   </Form.Item>
                 </Col>
                 <Col span={8}>

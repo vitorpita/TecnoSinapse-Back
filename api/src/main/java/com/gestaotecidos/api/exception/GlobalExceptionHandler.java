@@ -74,9 +74,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
-        String msg = ex.getMessage() != null && ex.getMessage().contains("document")
-                ? "Já existe um cadastro com este documento (CPF/CNPJ)."
-                : "Operação violou uma restrição de integridade dos dados.";
+        System.err.println("===== CONSTRAINT VIOLATION =====");
+        System.err.println("Endpoint: " + request.getRequestURI());
+        System.err.println("Causa: " + ex.getMostSpecificCause().getMessage());
+        System.err.println("================================");
+        String cause = ex.getMostSpecificCause().getMessage();
+        String msg;
+        if (cause != null && cause.contains("document")) {
+            msg = "Já existe um cadastro com este documento (CPF/CNPJ).";
+        } else if (cause != null && cause.contains("login")) {
+            msg = "Este login já está em uso.";
+        } else {
+            msg = "Operação violou uma restrição de integridade dos dados.";
+        }
         return buildResponse(HttpStatus.CONFLICT, msg, request);
     }
 

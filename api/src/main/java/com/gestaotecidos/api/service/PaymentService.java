@@ -6,10 +6,11 @@ import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.dto.PaymentDtos;
 import com.gestaotecidos.api.exception.BusinessException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
-import com.gestaotecidos.api.repository.CashMovementRepository;
 import com.gestaotecidos.api.repository.CashRegisterRepository;
 import com.gestaotecidos.api.repository.OrderRepository;
 import com.gestaotecidos.api.repository.PaymentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,24 +23,21 @@ public class PaymentService {
     private final PaymentRepository repository;
     private final OrderRepository orderRepository;
     private final CashRegisterRepository cashRegisterRepository;
-    private final CashMovementRepository cashMovementRepository;
     private final FinancialInstallmentService installmentService;
 
     public PaymentService(PaymentRepository repository,
                           OrderRepository orderRepository,
                           CashRegisterRepository cashRegisterRepository,
-                          CashMovementRepository cashMovementRepository,
                           FinancialInstallmentService installmentService) {
         this.repository = repository;
         this.orderRepository = orderRepository;
         this.cashRegisterRepository = cashRegisterRepository;
-        this.cashMovementRepository = cashMovementRepository;
         this.installmentService = installmentService;
     }
 
     @Transactional
     public PaymentDtos.Response create(PaymentDtos.Request data) {
-        cashRegisterRepository.findOpenRegister()
+        var cashRegister = cashRegisterRepository.findOpenRegister()
                 .orElseThrow(() -> new BusinessException(
                         "Não há caixa aberto. Abra o caixa antes de registrar pagamentos."));
 
@@ -66,25 +64,22 @@ public class PaymentService {
 
         var savedPayment = repository.save(payment);
 
-        // Baixa a parcela financeira
         if (data.installmentId() != null) {
             installmentService.settleInstallment(data.installmentId(), savedPayment);
         } else {
             installmentService.settleEarliestPending(order.getId(), savedPayment);
         }
 
-        // Cria movimentação de caixa automaticamente se houver caixa aberto
-        cashRegisterRepository.findOpenRegister().ifPresent(cashRegister -> {
-            var movement = new CashMovement();
-            movement.setCashRegister(cashRegister);
-            movement.setType(CashMovementType.RECEBIMENTO);
-            movement.setAmount(data.amount());
-            movement.setDescription("Recebimento - Pedido #" + order.getId() +
-                    " - " + data.paymentMethod().name());
-            movement.setOrder(order);
-            movement.setPayment(savedPayment);
-            cashMovementRepository.save(movement);
-        });
+        var movement = new CashMovement();
+        movement.setCashRegister(cashRegister);
+        movement.setType(CashMovementType.RECEBIMENTO);
+        movement.setAmount(data.amount());
+        movement.setDescription("Recebimento - Pedido #" + order.getId() +
+                " - " + data.paymentMethod().name());
+        movement.setOrder(order);
+        movement.setPayment(savedPayment);
+        cashRegister.getMovements().add(movement);
+        cashRegisterRepository.save(cashRegister);
 
         return mapToResponse(savedPayment);
     }
@@ -100,11 +95,9 @@ public class PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pagamento", id)));
     }
 
-    public List<PaymentDtos.Response> findAll() {
-        return repository.findAll().stream()
-                .filter(Payment::isActive)
-                .map(this::mapToResponse)
-                .toList();
+    public Page<PaymentDtos.Response> findAll(String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search : "";
+        return repository.findByActiveTrueAndSearch(searchParam, pageable).map(this::mapToResponse);
     }
 
     @Transactional

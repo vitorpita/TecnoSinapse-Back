@@ -39,7 +39,7 @@ export default function LoginPage() {
       navigate('/', { replace: true })
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         'Login ou senha inválidos. Verifique suas credenciais.'
       setError(msg)
     } finally {
@@ -67,8 +67,6 @@ export default function LoginPage() {
                 message={error}
                 type="error"
                 showIcon
-                closable
-                onClose={() => setError(null)}
                 style={{ marginBottom: 20, borderRadius: 6, fontSize: 12 }}
               />
             )}

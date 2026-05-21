@@ -32,6 +32,11 @@ public class UserDtos {
 
     public record AssignCargoRequest(Long cargoId) {}
 
+    public record ProfileUpdateRequest(
+            @NotBlank String name,
+            String password
+    ) {}
+
     public record Response(
             Long id,
             String name,

@@ -66,8 +66,10 @@ export interface PageResponse<T> {
 }
 
 export const purchaseOrderService = {
-  list: async (page = 0, size = 20): Promise<PageResponse<PurchaseOrderRecord>> => {
-    const { data } = await api.get('/purchase-orders', { params: { page, size, sort: 'createdAt,desc' } })
+  list: async (page = 0, size = 20, search?: string): Promise<PageResponse<PurchaseOrderRecord>> => {
+    const { data } = await api.get('/purchase-orders', {
+      params: { page, size, sort: 'createdAt,desc', ...(search ? { search } : {}) },
+    })
     if (Array.isArray(data)) {
       return { content: data, totalElements: data.length, totalPages: 1, number: 0, size: data.length }
     }

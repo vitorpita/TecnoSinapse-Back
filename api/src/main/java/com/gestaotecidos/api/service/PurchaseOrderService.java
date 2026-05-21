@@ -142,8 +142,9 @@ public class PurchaseOrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PurchaseOrderDtos.Response> findAll(Pageable pageable) {
-        return repository.findAllWithItems(pageable).map(this::mapToResponse);
+    public Page<PurchaseOrderDtos.Response> findAll(String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search : "";
+        return repository.findByActiveTrueAndSearch(searchParam, pageable).map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)

@@ -8,7 +8,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, ArrowLeftRight,
   Truck, Wallet, CreditCard, Users, Tag, UserCog,
   BarChart3, LogOut, ChevronRight, PanelLeftClose, PanelLeftOpen,
-  ShieldCheck, ClipboardList, User, Settings, Info, Camera,
+  ShieldCheck, ClipboardList, User, Settings, Info, Camera, Menu, X,
 } from 'lucide-react'
 
 const menuItems = [
@@ -65,6 +65,7 @@ const pageMeta: Record<string, { title: string; sub: string }> = {
   '/persons':         { title: 'Pessoas',           sub: 'Clientes, fornecedores e colaboradores' },
   '/categories':      { title: 'Categorias',        sub: 'Tipos de produto' },
   '/users':           { title: 'Usuários',          sub: 'Controle de acesso ao sistema' },
+  '/profile':         { title: 'Meu Perfil',        sub: 'Editar nome e senha da sua conta' },
   '/cargos':          { title: 'Cargos',            sub: 'Gerenciamento de permissões por cargo' },
   '/audit-logs':      { title: 'Logs de Auditoria', sub: 'Histórico de ações do sistema' },
   '/reports':         { title: 'Relatórios',        sub: 'Análises gerenciais' },
@@ -91,6 +92,7 @@ export default function AppLayout() {
     if (saved !== null) return saved === 'true'
     return FULL_SCREEN_ROUTES.includes(location.pathname)
   })
+  const [mobileOpen,     setMobileOpen]     = useState(false)
   const [dropdownOpen,   setDropdownOpen]   = useState(false)
   const [aboutOpen,      setAboutOpen]      = useState(false)
   const [avatarUrl,      setAvatarUrl]      = useState<string | null>(
@@ -104,6 +106,7 @@ export default function AppLayout() {
       setCollapsed(true)
       localStorage.setItem(COLLAPSE_KEY, 'true')
     }
+    setMobileOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -150,13 +153,18 @@ export default function AppLayout() {
   }
 
   const meta = getPageMeta(location.pathname)
+  const effectiveCollapsed = collapsed && !mobileOpen
 
   return (
     <div className={styles.root}>
 
-      <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
+      {mobileOpen && (
+        <div className={styles.mobileOverlay} onClick={() => setMobileOpen(false)} />
+      )}
+
+      <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''} ${mobileOpen ? styles.sidebarMobileOpen : ''}`}>
         <div className={styles.sidebarLogo} onClick={() => navigate('/')}>
-          {collapsed ? (
+          {effectiveCollapsed ? (
             <div className={styles.logoIcon}>T<span>S</span></div>
           ) : (
             <>
@@ -172,8 +180,8 @@ export default function AppLayout() {
             if (visibleItems.length === 0) return null
             return (
               <div key={group.label}>
-                {!collapsed && <div className={styles.menuLabel}>{group.label}</div>}
-                {collapsed && <div className={styles.menuLabelDot} />}
+                {!effectiveCollapsed && <div className={styles.menuLabel}>{group.label}</div>}
+                {effectiveCollapsed && <div className={styles.menuLabelDot} />}
                 {visibleItems.map((item) => {
                   const Icon     = item.icon
                   const isActive = item.key === '/'
@@ -184,18 +192,18 @@ export default function AppLayout() {
                   const menuEl = (
                     <div
                       key={item.key}
-                      className={`${styles.menuItem} ${isActive ? styles.active : ''} ${collapsed ? styles.menuItemCollapsed : ''}`}
+                      className={`${styles.menuItem} ${isActive ? styles.active : ''} ${effectiveCollapsed ? styles.menuItemCollapsed : ''}`}
                       onClick={() => navigate(item.key)}
                       onMouseEnter={() => setHovered(item.key)}
                       onMouseLeave={() => setHovered(null)}
                     >
                       <Icon size={15} className={styles.menuIcon} />
-                      {!collapsed && <span className={styles.menuLabel2}>{item.label}</span>}
-                      {!collapsed && (isActive || isHov) && <ChevronRight size={11} className={styles.chevron} />}
+                      {!effectiveCollapsed && <span className={styles.menuLabel2}>{item.label}</span>}
+                      {!effectiveCollapsed && (isActive || isHov) && <ChevronRight size={11} className={styles.chevron} />}
                     </div>
                   )
 
-                  return collapsed ? (
+                  return effectiveCollapsed ? (
                     <Tooltip key={item.key} title={item.label} placement="right">
                       {menuEl}
                     </Tooltip>
@@ -208,33 +216,38 @@ export default function AppLayout() {
 
         <div className={styles.sidebarFooter}>
           <button className={styles.collapseBtn} onClick={toggleCollapse} title={collapsed ? 'Expandir menu' : 'Recolher menu'}>
-            {collapsed
+            {effectiveCollapsed
               ? <PanelLeftOpen  size={14} />
               : <><PanelLeftClose size={14} /><span>Recolher</span></>
             }
           </button>
-          {!collapsed && (
+          {!effectiveCollapsed && (
             <div className={styles.logoutBtn} onClick={handleLogout}>
               <LogOut size={13} />
               <span>Sair do sistema</span>
             </div>
           )}
-          {collapsed && (
+          {effectiveCollapsed && (
             <Tooltip title="Sair do sistema" placement="right">
               <div className={styles.logoutBtnIcon} onClick={handleLogout}>
                 <LogOut size={13} />
               </div>
             </Tooltip>
           )}
-          {!collapsed && <div className={styles.version}>v1.0.0 · TecnoSinapse</div>}
+          {!effectiveCollapsed && <div className={styles.version}>v1.0.0 · TecnoSinapse</div>}
         </div>
       </aside>
 
       <div className={`${styles.main} ${collapsed ? styles.mainCollapsed : ''}`}>
         <header className={styles.topbar}>
-          <div>
-            <h1 className={styles.topbarTitle}>{meta.title}</h1>
-            <p className={styles.topbarSub}>{meta.sub}</p>
+          <div className={styles.topbarLeft}>
+            <button className={styles.hamburger} onClick={() => setMobileOpen(o => !o)} aria-label="Menu">
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <div>
+              <h1 className={styles.topbarTitle}>{meta.title}</h1>
+              <p className={styles.topbarSub}>{meta.sub}</p>
+            </div>
           </div>
 
           <div className={styles.topbarUser} ref={dropdownRef}>
@@ -275,7 +288,7 @@ export default function AppLayout() {
                 </button>
                 <button
                   className={styles.profileDropdownItem}
-                  onClick={() => { setDropdownOpen(false); navigate('/users') }}
+                  onClick={() => { setDropdownOpen(false); navigate('/profile') }}
                 >
                   <User size={14} /> Meu perfil
                 </button>

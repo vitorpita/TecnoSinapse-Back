@@ -17,6 +17,7 @@ import NewPaymentPage  from '@/features/payment/pages/NewPaymentPage'
 import ReportsPage      from '@/features/reports/pages/ReportsPage'
 import CargoPage        from '@/features/cargos/pages/CargoPage'
 import AuditLogPage     from '@/features/audit-logs/pages/AuditLogPage'
+import ProfilePage      from '@/features/users/pages/ProfilePage'
 
 
 export default function AppRouter() {
@@ -40,6 +41,7 @@ export default function AppRouter() {
             <Route path="/persons"         element={<PersonPage />} />
             <Route path="/categories"      element={<CategoryPage />} />
             <Route path="/users"           element={<UsersPage />} />
+            <Route path="/profile"         element={<ProfilePage />} />
             <Route path="/cargos"          element={<CargoPage />} />
             <Route path="/audit-logs"      element={<AuditLogPage />} />
             <Route path="/reports"         element={<ReportsPage />} />

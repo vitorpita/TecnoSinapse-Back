@@ -84,7 +84,8 @@ public class StockMovementService {
         );
     }
 
-    public Page<StockMovementDtos.Response> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(this::mapToResponse);
+    public Page<StockMovementDtos.Response> findAll(String search, Pageable pageable) {
+        String searchParam = (search != null && !search.isBlank()) ? search : "";
+        return repository.findBySearch(searchParam, pageable).map(this::mapToResponse);
     }
 }

@@ -37,9 +37,9 @@ export interface PageResponse<T> {
 }
 
 export const userService = {
-  list: async (page = 0, size = 20, search?: string): Promise<PageResponse<UserRecord>> => {
+  list: async (page = 0, size = 20, search?: string, inactive = false): Promise<PageResponse<UserRecord>> => {
     const { data } = await api.get('/users', {
-      params: { page, size, ...(search ? { search } : {}) },
+      params: { page, size, ...(search ? { search } : {}), inactive, sort: 'name,asc' },
     })
     if (Array.isArray(data)) {
       return { content: data, totalElements: data.length, totalPages: 1, number: 0, size: data.length }
@@ -59,5 +59,20 @@ export const userService = {
 
   delete: async (id: number): Promise<void> => {
     await api.delete(`/users/${id}`)
+  },
+
+  reactivate: async (id: number): Promise<UserRecord> => {
+    const { data } = await api.patch(`/users/${id}/reactivate`)
+    return data
+  },
+
+  getMe: async (): Promise<UserRecord> => {
+    const { data } = await api.get('/users/me')
+    return data
+  },
+
+  updateMe: async (payload: { name: string; password?: string }): Promise<UserRecord> => {
+    const { data } = await api.put('/users/me', payload)
+    return data
   },
 }

@@ -87,4 +87,13 @@ export const cashRegisterService = {
     const { data } = await api.patch(`/cash-registers/${cashId}/close`, payload)
     return data
   },
+
+  deleteMovement: async (cashId: number, movementId: number): Promise<void> => {
+    await api.delete(`/cash-registers/${cashId}/movements/${movementId}`)
+  },
+
+  findById: async (cashId: number): Promise<CashRegisterRecord> => {
+    const { data } = await api.get(`/cash-registers/${cashId}`)
+    return data
+  },
 }

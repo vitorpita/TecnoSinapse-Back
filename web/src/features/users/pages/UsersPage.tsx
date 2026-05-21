@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { App, Button, Drawer, Form, Input, Modal, Popconfirm, Select, Spin, Tag, Tooltip, Empty } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons'
+import { App, Button, Drawer, Form, Input, Modal, Popconfirm, Select, Spin, Switch, Tag, Tooltip, Empty } from 'antd'
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeInvisibleOutlined, EyeTwoTone, ReloadOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { userService, type UserRecord, type UserRole } from '../userService'
 import { cargoService } from '@/features/cargos/cargoService'
@@ -32,6 +32,7 @@ export default function UsersPage() {
   const [page,         setPage]         = useState(0)
   const [search,       setSearch]       = useState('')
   const [roleFilter,   setRoleFilter]   = useState('')
+  const [showInactive, setShowInactive] = useState(false)
   const [drawerOpen,   setDrawerOpen]   = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const [editing,      setEditing]      = useState<UserRecord | null>(null)
@@ -39,8 +40,8 @@ export default function UsersPage() {
   const [form] = Form.useForm()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['users', page, search],
-    queryFn:  () => userService.list(page, 20, search || undefined),
+    queryKey: ['users', page, search, showInactive],
+    queryFn:  () => userService.list(page, 20, search || undefined, showInactive),
   })
 
   const { data: cargos = [] } = useQuery({
@@ -93,6 +94,18 @@ export default function UsersPage() {
     onError: (err: unknown) => {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? ''
       message.error(msg || 'Erro ao inativar usuário.')
+    },
+  })
+
+  const reactivateMutation = useMutation({
+    mutationFn: userService.reactivate,
+    onSuccess: () => {
+      message.success('Usuário reativado com sucesso!')
+      qc.invalidateQueries({ queryKey: ['users'] })
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? ''
+      message.error(msg || 'Erro ao reativar usuário.')
     },
   })
 
@@ -167,6 +180,16 @@ export default function UsersPage() {
             style={{ width: 180 }}
             size="large"
           />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', fontSize: 13 }}>
+            <Switch
+              size="small"
+              checked={showInactive}
+              onChange={(v) => { setShowInactive(v); setPage(0) }}
+            />
+            <span style={{ color: showInactive ? '#E24B4A' : '#888' }}>
+              {showInactive ? 'Inativos' : 'Ativos'}
+            </span>
+          </div>
         </div>
         <Button type="primary" icon={<PlusOutlined />} size="large" onClick={openNew} className={styles.newBtn}>
           Novo Usuário
@@ -201,34 +224,56 @@ export default function UsersPage() {
             <tbody>
               {filtered.map((user) => {
                 const role = ROLE_CONFIG[user.role] ?? { label: user.role, color: 'default' }
+                const isActive = user.active !== false
                 return (
-                  <tr key={user.id}>
+                  <tr key={user.id} style={!isActive ? { opacity: 0.55 } : undefined}>
                     <td className={styles.tdId}>#{user.id}</td>
                     <td className={styles.tdName}>{user.name}</td>
                     <td className={styles.tdLogin}>{user.login}</td>
-                    <td><Tag color={role.color}>{role.label}</Tag></td>
+                    <td>
+                      <Tag color={role.color}>{role.label}</Tag>
+                      {!isActive && <Tag color="default" style={{ marginLeft: 4 }}>Inativo</Tag>}
+                    </td>
                     <td>{user.cargoName ? <Tag color="geekblue">{user.cargoName}</Tag> : <span style={{ color: '#ccc', fontSize: 12 }}>—</span>}</td>
                     <td>
                       <div className={styles.actions}>
-                        <Tooltip title="Editar">
-                          <button className={styles.actionBtn} onClick={() => openEdit(user)}>
-                            <EditOutlined />
-                          </button>
-                        </Tooltip>
-                        <Popconfirm
-                          title="Inativar usuário"
-                          description="O usuário perderá acesso ao sistema."
-                          onConfirm={() => deleteMutation.mutate(user.id)}
-                          okText="Sim, inativar"
-                          cancelText="Cancelar"
-                          okButtonProps={{ danger: true }}
-                        >
-                          <Tooltip title="Inativar">
-                            <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
-                              <DeleteOutlined />
+                        {isActive && (
+                          <Tooltip title="Editar">
+                            <button className={styles.actionBtn} onClick={() => openEdit(user)}>
+                              <EditOutlined />
                             </button>
                           </Tooltip>
-                        </Popconfirm>
+                        )}
+                        {isActive ? (
+                          <Popconfirm
+                            title="Inativar usuário"
+                            description="O usuário perderá acesso ao sistema."
+                            onConfirm={() => deleteMutation.mutate(user.id)}
+                            okText="Sim, inativar"
+                            cancelText="Cancelar"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Tooltip title="Inativar">
+                              <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
+                                <DeleteOutlined />
+                              </button>
+                            </Tooltip>
+                          </Popconfirm>
+                        ) : (
+                          <Popconfirm
+                            title="Reativar usuário"
+                            description="O usuário voltará a ter acesso ao sistema."
+                            onConfirm={() => reactivateMutation.mutate(user.id)}
+                            okText="Sim, reativar"
+                            cancelText="Cancelar"
+                          >
+                            <Tooltip title="Reativar">
+                              <button className={styles.actionBtn}>
+                                <ReloadOutlined />
+                              </button>
+                            </Tooltip>
+                          </Popconfirm>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -264,7 +309,7 @@ export default function UsersPage() {
           </div>
         }
       >
-        <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item name="name" label={<span className={styles.fieldLabel}>Nome completo</span>}
             rules={[{ required: true, message: 'Informe o nome' }]}>
             <Input placeholder="Ex: João Silva" size="large" />

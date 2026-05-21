@@ -75,7 +75,7 @@ public class User extends BaseDomain implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() { return true; }
+    public boolean isEnabled() { return isActive(); }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

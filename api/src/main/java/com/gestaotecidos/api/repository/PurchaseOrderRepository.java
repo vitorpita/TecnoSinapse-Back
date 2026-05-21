@@ -19,14 +19,31 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
     @Query("SELECT po FROM PurchaseOrder po WHERE po.id = :id AND po.active = true")
     Optional<PurchaseOrder> findByIdAndActiveTrue(@Param("id") Long id);
 
-    @Query("""
+    @Query(value = """
         SELECT DISTINCT po FROM PurchaseOrder po
         LEFT JOIN FETCH po.items
         LEFT JOIN FETCH po.supplier
         WHERE po.active = true
         ORDER BY po.createdAt DESC
-    """)
+        """,
+        countQuery = "SELECT COUNT(DISTINCT po) FROM PurchaseOrder po WHERE po.active = true")
     Page<PurchaseOrder> findAllWithItems(Pageable pageable);
+
+    @Query(value = """
+        SELECT DISTINCT po FROM PurchaseOrder po
+        LEFT JOIN FETCH po.items
+        LEFT JOIN FETCH po.supplier
+        WHERE po.active = true AND
+        (:search = '' OR LOWER(po.supplier.name) LIKE LOWER(CONCAT('%', :search, '%')))
+        ORDER BY po.createdAt DESC
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT po) FROM PurchaseOrder po
+        LEFT JOIN po.supplier
+        WHERE po.active = true AND
+        (:search = '' OR LOWER(po.supplier.name) LIKE LOWER(CONCAT('%', :search, '%')))
+        """)
+    Page<PurchaseOrder> findByActiveTrueAndSearch(@Param("search") String search, Pageable pageable);
 
     @Query("""
         SELECT po FROM PurchaseOrder po

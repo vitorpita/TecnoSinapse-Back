@@ -1,8 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { App, Button, Form, Input, InputNumber, Row, Col, Select } from 'antd'
+import { App, Alert, Button, Form, Input, InputNumber, Row, Col, Select } from 'antd'
+import { MoneyInput } from '@/components/MoneyInput'
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { paymentService, type PaymentMethod } from '../paymentService'
+import { cashRegisterService } from '@/features/cash-register/cashRegisterService'
 import styles from './NewPaymentPage.module.css'
 
 interface MethodOption {
@@ -101,11 +103,18 @@ export default function NewPaymentPage() {
   const perInstallment    = amountWatch && installmentsCount > 0 ? amountWatch / installmentsCount : 0
   const firstDueDate      = installmentsCount > 1 ? installDatesWatch?.[0] : dueDateWatch
 
+  const { data: currentCash, isLoading: loadingCash } = useQuery({
+    queryKey: ['cash-current'],
+    queryFn:  cashRegisterService.getCurrentCash,
+  })
+
   const createMutation = useMutation({
     mutationFn: paymentService.create,
     onSuccess: () => {
       message.success('Pagamento criado com sucesso!')
       qc.invalidateQueries({ queryKey: ['payments'] })
+      qc.invalidateQueries({ queryKey: ['cash-current'] })
+      qc.invalidateQueries({ queryKey: ['cash-history'] })
       navigate('/payments')
     },
     onError: (err: unknown) => {
@@ -156,6 +165,16 @@ export default function NewPaymentPage() {
   return (
     <div className={styles.root}>
 
+      {!loadingCash && !currentCash && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Caixa fechado"
+          description="Nenhum caixa está aberto. O recebimento será registrado sem movimentação de caixa. Abra o caixa antes de processar pagamentos."
+          style={{ marginBottom: 16, borderRadius: 8 }}
+        />
+      )}
+
       {/* ── Header ─────────────────────────── */}
       <div className={styles.pageHeader}>
         <button className={styles.backBtn} onClick={() => navigate('/payments')}>
@@ -168,7 +187,7 @@ export default function NewPaymentPage() {
         form={form}
         layout="vertical"
         onFinish={onFinish}
-        requiredMark={false}
+        requiredMark
         initialValues={{
           installments: 1,
           intervalDays: 30,
@@ -222,10 +241,10 @@ export default function NewPaymentPage() {
                     label={fieldLabel('Valor Total (R$)')}
                     rules={[{ required: true, message: 'Informe o valor' }]}
                   >
-                    <InputNumber
-                      min={0.01} step={0.01} precision={2}
+                    <MoneyInput
+                      min={0.01}
                       size="large" style={{ width: '100%' }}
-                      placeholder="0,00" prefix="R$"
+                      placeholder="0,00"
                     />
                   </Form.Item>
                 </Col>

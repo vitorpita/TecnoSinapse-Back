@@ -29,8 +29,8 @@ public class PersonService {
         }
 
         if (data.document() != null && !data.document().isBlank()) {
-            repository.findByDocument(data.document()).ifPresent(existing -> {
-                throw new ConflictException("Já existe um cadastro com este documento (CPF/CNPJ).");
+            repository.findByDocumentAndActiveTrue(data.document()).ifPresent(existing -> {
+                throw new ConflictException("Já existe um cadastro ativo com este documento (CPF/CNPJ).");
             });
         }
 
@@ -67,6 +67,10 @@ public class PersonService {
         return repository.findByActiveTrue(pageable).map(this::mapToResponse);
     }
 
+    public Page<PersonDtos.Response> findInactive(Pageable pageable) {
+        return repository.findByActiveFalse(pageable).map(this::mapToResponse);
+    }
+
     public Page<PersonDtos.Response> findByRole(PersonRole role, String search, Pageable pageable) {
         if (search != null && !search.isBlank()) {
             return repository.searchByRoleAndNameOrDocument(role, search.trim(), pageable).map(this::mapToResponse);
@@ -83,6 +87,27 @@ public class PersonService {
         var person = findEntityById(id);
         person.deactivate();
         repository.save(person);
+    }
+
+    @Transactional
+    public PersonDtos.Response reactivate(Long id) {
+        var person = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pessoa", id));
+
+        if (person.isActive()) {
+            throw new BusinessException("Este cadastro já está ativo.");
+        }
+
+        if (person.getDocument() != null && !person.getDocument().isBlank()) {
+            repository.findByDocumentAndActiveTrue(person.getDocument()).ifPresent(existing -> {
+                if (!existing.getId().equals(id)) {
+                    throw new ConflictException("Já existe um cadastro ativo com este documento (CPF/CNPJ).");
+                }
+            });
+        }
+
+        person.reactivate();
+        return mapToResponse(repository.save(person));
     }
 
     private Person findEntityById(Long id) {

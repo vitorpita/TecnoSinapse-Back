@@ -68,4 +68,13 @@ public class CashRegisterController {
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(service.findAll(pageable));
     }
+
+    @DeleteMapping("/{cashId}/movements/{movementId}")
+    @PreAuthorize("hasAuthority('cash:write')")
+    public ResponseEntity<Void> deleteMovement(
+            @PathVariable Long cashId,
+            @PathVariable Long movementId) {
+        service.deleteMovement(cashId, movementId);
+        return ResponseEntity.noContent().build();
+    }
 }

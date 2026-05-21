@@ -46,8 +46,8 @@ export default function PurchaseOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrderRecord | null>(null)
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['purchase-orders', page],
-    queryFn:  () => purchaseOrderService.list(page),
+    queryKey: ['purchase-orders', page, search],
+    queryFn:  () => purchaseOrderService.list(page, 20, search || undefined),
   })
 
   const createMutation = useMutation({
@@ -92,14 +92,9 @@ export default function PurchaseOrdersPage() {
   })
 
   const orders = data?.content ?? []
-  const filtered = orders.filter((o: PurchaseOrderRecord) => {
-    const matchSearch = !search ||
-      o.supplierName?.toLowerCase().includes(search.toLowerCase()) ||
-      String(o.id).includes(search) ||
-      o.invoiceNumber?.includes(search)
-    const matchStatus = !statusFilter || o.status === statusFilter
-    return matchSearch && matchStatus
-  })
+  const filtered = orders.filter((o: PurchaseOrderRecord) =>
+    !statusFilter || o.status === statusFilter
+  )
 
   const handleFormSubmit = (values: Parameters<typeof createMutation.mutate>[0]) => {
     if (selectedOrder) {
@@ -144,7 +139,7 @@ export default function PurchaseOrdersPage() {
               className={styles.searchInput}
               placeholder="Buscar por fornecedor, NF ou código..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(0) }}
             />
           </div>
           <Select

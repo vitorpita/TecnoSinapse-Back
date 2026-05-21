@@ -13,9 +13,9 @@ interface SellerOption {
 }
 
 export const orderService = {
-  findAll: async (page = 0, size = DEFAULT_PAGE_SIZE): Promise<PageResponse<OrderResponse>> => {
+  findAll: async (page = 0, size = DEFAULT_PAGE_SIZE, search?: string): Promise<PageResponse<OrderResponse>> => {
     const { data } = await api.get<PageResponse<OrderResponse>>('/orders', {
-      params: { page, size, sort: 'id,desc' },
+      params: { page, size, sort: 'id,desc', ...(search ? { search } : {}) },
     })
     return data
   },

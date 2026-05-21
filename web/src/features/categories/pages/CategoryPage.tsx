@@ -232,7 +232,7 @@ export default function CategoryPage() {
           </div>
         }
       >
-        <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
             name="name"
             label={<span className={styles.fieldLabel}>Nome</span>}

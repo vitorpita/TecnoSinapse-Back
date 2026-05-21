@@ -33,8 +33,9 @@ public class PurchaseOrderController {
     @PreAuthorize("hasAuthority('order:read')")
     @Transactional(readOnly = true)
     public ResponseEntity<Page<PurchaseOrderDtos.Response>> findAll(
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(pageable));
+            @PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(service.findAll(search, pageable));
     }
 
     @GetMapping("/{id}")

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react'
-import { App, Button, Drawer, Form, Input, InputNumber,
-  Select, Spin, Tag, Tooltip, Empty, Pagination } from 'antd'
+import { App, Alert, Button, Drawer, Form, Input,
+  Select, Spin, Tag, Tooltip, Empty, Pagination, Popconfirm, Modal, Descriptions } from 'antd'
+import { MoneyInput } from '@/components/MoneyInput'
 import {
-  PlusOutlined, SearchOutlined, LockOutlined, UnlockOutlined, DeleteOutlined } from '@ant-design/icons'
+  PlusOutlined, SearchOutlined, LockOutlined, UnlockOutlined, DeleteOutlined, EyeOutlined, PrinterOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   cashRegisterService,
@@ -65,6 +66,7 @@ export default function CashRegisterPage() {
   const [movementDrawer, setMovementDrawer] = useState(false)
   const [closeDrawer, setCloseDrawer] = useState(false)
   const [search, setSearch] = useState('')
+  const [historyDetailCash, setHistoryDetailCash] = useState<CashRegisterRecord | null>(null)
   const [form] = Form.useForm()
   const [closeForm] = Form.useForm()
 
@@ -128,6 +130,28 @@ export default function CashRegisterPage() {
     },
   })
 
+  const deleteMovementMutation = useMutation({
+    mutationFn: ({ cashId, movementId }: { cashId: number; movementId: number }) =>
+      cashRegisterService.deleteMovement(cashId, movementId),
+    onSuccess: () => {
+      message.success('Movimentação excluída.')
+      qc.invalidateQueries({ queryKey: ['cash-current'] })
+    },
+    onError: (err: unknown) => {
+      const msg = (err as HttpError)?.response?.data?.message
+      message.error(msg || 'Erro ao excluir movimentação.')
+    },
+  })
+
+  const handleViewHistoryCash = async (cash: CashRegisterRecord) => {
+    try {
+      const detail = await cashRegisterService.findById(cash.id)
+      setHistoryDetailCash(detail)
+    } catch {
+      setHistoryDetailCash(cash)
+    }
+  }
+
   const totalIn = currentCash?.totalIn ?? 0
   const totalOut = currentCash?.totalOut ?? 0
   const balance = currentCash?.expectedBalance ?? (currentCash?.openingBalance ?? 0)
@@ -177,6 +201,59 @@ export default function CashRegisterPage() {
 
   const saving = addMovementMutation.isPending || closeCashMutation.isPending
 
+  const handlePrint = (cash: CashRegisterRecord) => {
+    const win = window.open('', '_blank', 'width=800,height=700')
+    if (!win) return
+    const movements = cash.movements ?? []
+    const rows = movements.map(m => {
+      const d = MOVEMENT_DISPLAY[m.type] ?? { label: m.type, prefix: '', cssClass: 'amountIn' }
+      const sign = d.prefix === '+' ? 'color:#1D9E75' : d.prefix === '-' ? 'color:#E24B4A' : ''
+      return `<tr>
+        <td>${m.description}</td>
+        <td>${d.label}</td>
+        <td style="${sign};font-weight:600">${d.prefix} ${formatCurrency(m.amount)}</td>
+        <td>${formatDate(m.createdAt)}</td>
+      </tr>`
+    }).join('')
+    win.document.write(`<!DOCTYPE html><html><head>
+      <meta charset="UTF-8">
+      <title>Relatório de Caixa #${cash.id}</title>
+      <style>
+        body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:24px}
+        h2{margin:0 0 4px;font-size:18px}p{margin:0 0 2px;color:#555;font-size:12px}
+        hr{border:none;border-top:1px solid #ddd;margin:12px 0}
+        .summary{display:flex;gap:32px;margin:12px 0;flex-wrap:wrap}
+        .summary div{min-width:120px}.summary label{font-size:11px;color:#888;display:block}
+        .summary span{font-size:15px;font-weight:700}
+        table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12px}
+        th{text-align:left;padding:6px 8px;background:#042C53;color:#fff;font-size:11px}
+        td{padding:6px 8px;border-bottom:1px solid #eee}
+        tr:last-child td{border-bottom:none}
+        @media print{.no-print{display:none}}
+      </style>
+    </head><body>
+      <h2>Relatório de Caixa #${cash.id}</h2>
+      <p>Responsável: ${cash.openedByName}</p>
+      <p>Abertura: ${formatDate(cash.openedAt)}${cash.closedAt ? ' · Fechamento: ' + formatDate(cash.closedAt) : ''}</p>
+      <hr/>
+      <div class="summary">
+        <div><label>Saldo Inicial</label><span>${formatCurrency(cash.openingBalance)}</span></div>
+        <div><label>Total Entradas</label><span style="color:#1D9E75">${formatCurrency(cash.totalIn ?? 0)}</span></div>
+        <div><label>Total Saídas</label><span style="color:#E24B4A">${formatCurrency(cash.totalOut ?? 0)}</span></div>
+        <div><label>Saldo Esperado</label><span>${formatCurrency(cash.expectedBalance ?? cash.openingBalance)}</span></div>
+        ${cash.closingBalance != null ? `<div><label>Saldo Real</label><span>${formatCurrency(cash.closingBalance)}</span></div>` : ''}
+      </div>
+      ${cash.observation ? `<p><b>Observações:</b> ${cash.observation}</p>` : ''}
+      <hr/>
+      <table>
+        <thead><tr><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Hora</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <script>window.onload=()=>{window.print()}</script>
+    </body></html>`)
+    win.document.close()
+  }
+
   return (
     <div className={styles.root}>
       {loadingCurrent ? (
@@ -212,42 +289,24 @@ export default function CashRegisterPage() {
           </div>
         </div>
       ) : (
-        <div
-          style={{
-            background: '#fef3c7',
-            border: '1px solid #fcd34d',
-            borderRadius: 10,
-            padding: '24px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            fontFamily: "'Exo 2', sans-serif",
-          }}
-        >
-          <div>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 700,
-                color: '#92400e',
-                marginBottom: 4,
-              }}
+        <Alert
+          type="warning"
+          showIcon
+          message="Caixa Fechado"
+          description="Nenhum caixa está aberto. Pagamentos e movimentações estão bloqueados até que um novo caixa seja aberto."
+          action={
+            <Button
+              type="primary"
+              size="large"
+              onClick={handleOpenCash}
+              loading={openCashMutation.isPending}
+              icon={<UnlockOutlined />}
             >
-              Caixa Fechado
-            </div>
-            <div style={{ fontSize: 12, fontWeight: 300, color: '#92400e' }}>
-              Abra um novo caixa para iniciar as operações
-            </div>
-          </div>
-          <Button
-            type="primary"
-            size="large"
-            onClick={handleOpenCash}
-            loading={openCashMutation.isPending}
-          >
-            <UnlockOutlined /> Abrir Caixa
-          </Button>
-        </div>
+              Abrir Caixa
+            </Button>
+          }
+          style={{ borderRadius: 10, marginBottom: 0 }}
+        />
       )}
 
       {currentCash && (
@@ -315,6 +374,13 @@ export default function CashRegisterPage() {
               className={styles.actionBtn}
             >
               + Movimentação
+            </Button>
+            <Button
+              icon={<PrinterOutlined />}
+              size="large"
+              onClick={() => handlePrint(currentCash!)}
+            >
+              Imprimir
             </Button>
             <Button
               danger
@@ -386,13 +452,22 @@ export default function CashRegisterPage() {
                       </td>
                       <td>
                         <div className={styles.actions}>
-                          <Tooltip title="Deletar">
-                            <button
-                              className={`${styles.actionIconBtn} ${styles.actionDanger}`}
-                            >
-                              <DeleteOutlined />
-                            </button>
-                          </Tooltip>
+                          <Popconfirm
+                            title="Excluir movimentação"
+                            description="Deseja realmente excluir esta movimentação?"
+                            onConfirm={() => deleteMovementMutation.mutate({ cashId: currentCash!.id, movementId: movement.id })}
+                            okText="Sim, excluir"
+                            cancelText="Cancelar"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Tooltip title="Excluir">
+                              <button
+                                className={`${styles.actionIconBtn} ${styles.actionDanger}`}
+                              >
+                                <DeleteOutlined />
+                              </button>
+                            </Tooltip>
+                          </Popconfirm>
                         </div>
                       </td>
                     </tr>
@@ -454,7 +529,12 @@ export default function CashRegisterPage() {
                   <td>
                     <div className={styles.actions}>
                       <Tooltip title="Ver detalhes">
-                        <button className={styles.actionIconBtn}>📋</button>
+                        <button
+                          className={styles.actionIconBtn}
+                          onClick={() => handleViewHistoryCash(cash)}
+                        >
+                          <EyeOutlined />
+                        </button>
                       </Tooltip>
                     </div>
                   </td>
@@ -505,7 +585,7 @@ export default function CashRegisterPage() {
           form={form}
           layout="vertical"
           onFinish={handleAddMovement}
-          requiredMark={false}
+          requiredMark
         >
           <Form.Item
             name="type"
@@ -524,10 +604,8 @@ export default function CashRegisterPage() {
             label={<span className={styles.fieldLabel}>Valor (R$)</span>}
             rules={[{ required: true, message: 'Informe o valor' }]}
           >
-            <InputNumber
+            <MoneyInput
               min={0.01}
-              step={0.01}
-              precision={2}
               style={{ width: '100%' }}
               size="large"
               placeholder="0,00"
@@ -546,6 +624,95 @@ export default function CashRegisterPage() {
           </Form.Item>
         </Form>
       </Drawer>
+
+      <Modal
+        open={!!historyDetailCash}
+        onCancel={() => setHistoryDetailCash(null)}
+        onOk={() => setHistoryDetailCash(null)}
+        okText="Fechar"
+        cancelButtonProps={{ style: { display: 'none' } }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 32 }}>
+            <span>Detalhes do Caixa #{historyDetailCash?.id ?? ''}</span>
+            {historyDetailCash && (
+              <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrint(historyDetailCash)}>
+                Imprimir
+              </Button>
+            )}
+          </div>
+        }
+        width={600}
+      >
+        {historyDetailCash && (
+          <>
+            <Descriptions column={2} size="small" bordered>
+              <Descriptions.Item label="Responsável (abertura)" span={2}>
+                {historyDetailCash.openedByName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Abertura">
+                {formatDate(historyDetailCash.openedAt)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Encerramento">
+                {historyDetailCash.closedAt ? formatDate(historyDetailCash.closedAt) : '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Saldo Inicial">
+                {formatCurrency(historyDetailCash.openingBalance)}
+              </Descriptions.Item>
+              <Descriptions.Item label="Saldo Final">
+                {historyDetailCash.closingBalance ? formatCurrency(historyDetailCash.closingBalance) : '—'}
+              </Descriptions.Item>
+              {historyDetailCash.totalIn != null && (
+                <Descriptions.Item label="Total Entradas">
+                  {formatCurrency(historyDetailCash.totalIn)}
+                </Descriptions.Item>
+              )}
+              {historyDetailCash.totalOut != null && (
+                <Descriptions.Item label="Total Saídas">
+                  {formatCurrency(historyDetailCash.totalOut)}
+                </Descriptions.Item>
+              )}
+              {historyDetailCash.expectedBalance != null && (
+                <Descriptions.Item label="Saldo Esperado" span={2}>
+                  {formatCurrency(historyDetailCash.expectedBalance)}
+                </Descriptions.Item>
+              )}
+              {historyDetailCash.observation && (
+                <Descriptions.Item label="Observações" span={2}>
+                  {historyDetailCash.observation}
+                </Descriptions.Item>
+              )}
+            </Descriptions>
+            {(historyDetailCash.movements ?? []).length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13 }}>Movimentações</div>
+                <table className={styles.table} style={{ fontSize: 12 }}>
+                  <thead>
+                    <tr>
+                      <th>Descrição</th>
+                      <th>Tipo</th>
+                      <th>Valor</th>
+                      <th>Hora</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(historyDetailCash.movements ?? []).map((m: CashMovement) => {
+                      const d = MOVEMENT_DISPLAY[m.type] ?? { label: m.type, color: 'default', prefix: '', cssClass: 'amountIn' }
+                      return (
+                        <tr key={m.id}>
+                          <td>{m.description}</td>
+                          <td><Tag color={d.color}>{d.label}</Tag></td>
+                          <td><span className={styles[d.cssClass as keyof typeof styles]}>{d.prefix} {formatCurrency(m.amount)}</span></td>
+                          <td>{formatDate(m.createdAt)}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+      </Modal>
 
       <Drawer
         title={<span className={styles.drawerTitle}>Fechar Caixa</span>}
@@ -626,7 +793,7 @@ export default function CashRegisterPage() {
               form={closeForm}
               layout="vertical"
               onFinish={handleCloseCash}
-              requiredMark={false}
+              requiredMark
             >
               <Form.Item
                 name="closingBalance"
@@ -637,10 +804,8 @@ export default function CashRegisterPage() {
                 }
                 rules={[{ required: true, message: 'Informe o saldo real' }]}
               >
-                <InputNumber
+                <MoneyInput
                   min={0}
-                  step={0.01}
-                  precision={2}
                   style={{ width: '100%' }}
                   size="large"
                   placeholder="0,00"

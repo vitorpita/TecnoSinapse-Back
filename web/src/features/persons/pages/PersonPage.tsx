@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import {
   Drawer, Form, Input, Row, Col, Button,
-  Spin, Modal, Tag, Tooltip, Popconfirm, Select, Empty, App
+  Spin, Modal, Tag, Tooltip, Popconfirm, Select, Empty, App, Switch
 } from 'antd'
 import {
-  Save, X, Eye, Trash2, Search, Pencil,
+  Save, X, Eye, Trash2, Search, Pencil, RefreshCw,
 } from 'lucide-react'
 import { PlusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -72,13 +72,14 @@ export default function PersonPage() {
   const [search,         setSearch]         = useState('')
   const [roleFilter,     setRoleFilter]     = useState('')
   const [page,           setPage]           = useState(0)
+  const [showInactive,   setShowInactive]   = useState(false)
 
   const [form] = Form.useForm()
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['persons', page, search],
-    queryFn:  () => personService.list(page, 20, search || undefined),
+    queryKey: ['persons', page, search, showInactive],
+    queryFn:  () => personService.list(page, 20, search || undefined, showInactive),
   })
 
   const persons: PersonRecord[] = data?.content ?? []
@@ -130,6 +131,18 @@ export default function PersonPage() {
     },
     onError: () => {
       message.error('Erro ao inativar registro.')
+    },
+  })
+
+  const reactivateMutation = useMutation({
+    mutationFn: personService.reactivate,
+    onSuccess: () => {
+      message.success('Cadastro reativado com sucesso!')
+      queryClient.invalidateQueries({ queryKey: ['persons'] })
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? ''
+      message.error(msg || 'Erro ao reativar cadastro.')
     },
   })
 
@@ -289,13 +302,23 @@ export default function PersonPage() {
                 onChange={(e) => { setSearch(e.target.value); setPage(0) }}
               />
             </div>
-            <Select
-              value={roleFilter}
-              onChange={(v) => setRoleFilter(v)}
-              options={roleFilterOptions}
-              style={{ width: 180 }}
-              size="large"
-            />
+            {!showInactive && (
+              <Select
+                value={roleFilter}
+                onChange={(v) => setRoleFilter(v)}
+                options={roleFilterOptions}
+                style={{ width: 180 }}
+                size="large"
+              />
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#666', whiteSpace: 'nowrap' }}>
+              <Switch
+                size="small"
+                checked={showInactive}
+                onChange={(v) => { setShowInactive(v); setPage(0) }}
+              />
+              Mostrar inativos
+            </div>
           </div>
           <div className={styles.tableToolbarRight}>
             <span className={styles.tableCount}>
@@ -358,28 +381,47 @@ export default function PersonPage() {
                           <Eye size={14} />
                         </button>
                       </Tooltip>
-                      <Tooltip title="Editar">
-                        <button
-                          className={styles.actionBtn}
-                          onClick={() => handleEditPerson(record)}
+                      {record.active !== false && (
+                        <>
+                          <Tooltip title="Editar">
+                            <button
+                              className={styles.actionBtn}
+                              onClick={() => handleEditPerson(record)}
+                            >
+                              <Pencil size={14} />
+                            </button>
+                          </Tooltip>
+                          <Popconfirm
+                            title="Inativar registro"
+                            description="Deseja realmente inativar esta pessoa?"
+                            onConfirm={() => deleteMutation.mutate(record.id)}
+                            okText="Sim, inativar"
+                            cancelText="Cancelar"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <Tooltip title="Inativar">
+                              <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
+                                <Trash2 size={14} />
+                              </button>
+                            </Tooltip>
+                          </Popconfirm>
+                        </>
+                      )}
+                      {record.active === false && (
+                        <Popconfirm
+                          title="Reativar cadastro"
+                          description="Deseja reativar este cadastro?"
+                          onConfirm={() => reactivateMutation.mutate(record.id)}
+                          okText="Sim, reativar"
+                          cancelText="Cancelar"
                         >
-                          <Pencil size={14} />
-                        </button>
-                      </Tooltip>
-                      <Popconfirm
-                        title="Inativar registro"
-                        description="Deseja realmente inativar esta pessoa?"
-                        onConfirm={() => deleteMutation.mutate(record.id)}
-                        okText="Sim, inativar"
-                        cancelText="Cancelar"
-                        okButtonProps={{ danger: true }}
-                      >
-                        <Tooltip title="Inativar">
-                          <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
-                            <Trash2 size={14} />
-                          </button>
-                        </Tooltip>
-                      </Popconfirm>
+                          <Tooltip title="Reativar">
+                            <button className={styles.actionBtn} style={{ color: '#1D9E75' }}>
+                              <RefreshCw size={14} />
+                            </button>
+                          </Tooltip>
+                        </Popconfirm>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -464,7 +506,7 @@ export default function PersonPage() {
             onFinish={onFinish}
             className={styles.form}
             disabled={!!viewingPerson && !isEditing}
-            requiredMark={false}
+            requiredMark
           >
             <Form.Item
               name="roles"
@@ -486,13 +528,12 @@ export default function PersonPage() {
                   label={<span className={styles.fieldLabel}>CPF / CNPJ</span>}
                   normalize={maskCpfCnpj}
                   rules={[
-                    { required: true, message: 'Informe o documento' },
                     {
                       validator: (_, value) => {
                         const v = (value ?? '').replace(/\D/g, '')
+                        if (!v) return Promise.resolve()
                         if (v.length === 11 && cpf.isValid(v)) return Promise.resolve()
                         if (v.length === 14 && cnpj.isValid(v)) return Promise.resolve()
-                        if (!v) return Promise.resolve()
                         return Promise.reject(new Error('CPF ou CNPJ inválido'))
                       },
                     },

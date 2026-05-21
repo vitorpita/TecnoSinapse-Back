@@ -38,9 +38,9 @@ export interface ProductOption {
 }
 
 export const stockMovementService = {
-  list: async (page = 0, size = 20): Promise<PageResponse<StockMovementRecord>> => {
+  list: async (page = 0, size = 20, search?: string): Promise<PageResponse<StockMovementRecord>> => {
     const { data } = await api.get('/stock-movements', {
-      params: { page, size, sort: 'createdAt,desc' },
+      params: { page, size, sort: 'createdAt,desc', ...(search ? { search } : {}) },
     })
     if (Array.isArray(data)) {
       return { content: data, totalElements: data.length, totalPages: 1, number: 0, size: data.length }

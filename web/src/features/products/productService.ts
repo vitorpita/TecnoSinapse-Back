@@ -94,7 +94,7 @@ export const productService = {
   },
 
   getProviders: async (): Promise<PageResponse<ProviderOption>> => {
-    const { data } = await api.get('/persons', { params: { size: 200 } })
+    const { data } = await api.get('/persons', { params: { size: 200, role: 'FORNECEDOR' } })
     if (Array.isArray(data)) {
       return { content: data, totalElements: data.length, totalPages: 1, number: 0, size: data.length }
     }

@@ -43,7 +43,8 @@ public class StockMovementController {
     @GetMapping
     @PreAuthorize("hasAuthority('product:read')")
     public ResponseEntity<Page<StockMovementDtos.Response>> findAll(
-            @PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(pageable));
+            @PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(service.findAll(search, pageable));
     }
 }

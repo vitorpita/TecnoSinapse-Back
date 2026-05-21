@@ -18,6 +18,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.active = true ORDER BY o.id DESC")
     Page<Order> findByActiveTrue(Pageable pageable);
 
+    @Query("SELECT o FROM Order o WHERE o.active = true AND " +
+           "(:search = '' OR LOWER(o.client.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "OR LOWER(o.seller.name) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "ORDER BY o.id DESC")
+    Page<Order> findByActiveTrueAndSearch(@Param("search") String search, Pageable pageable);
+
     @Query("SELECT o FROM Order o WHERE o.id = :id AND o.active = true")
     Optional<Order> findByIdActive(@Param("id") Long id);
 

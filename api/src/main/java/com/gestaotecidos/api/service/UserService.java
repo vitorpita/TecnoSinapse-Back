@@ -34,12 +34,52 @@ public class UserService {
         this.auditLogService = auditLogService;
     }
 
-    public Page<UserDtos.Response> findAll(Pageable pageable) {
-        return repository.findByActiveTrue(pageable).map(this::mapToResponse);
+    public Page<UserDtos.Response> findAll(Pageable pageable, String search, boolean inactive) {
+        String searchParam = (search != null && !search.isBlank()) ? search : "";
+        if (inactive) {
+            return repository.findByActiveFalseAndSearch(searchParam, pageable).map(this::mapToResponse);
+        }
+        return repository.findByActiveTrueAndSearch(searchParam, pageable).map(this::mapToResponse);
+    }
+
+    @Transactional
+    public UserDtos.Response reactivate(Long id) {
+        var user = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", id));
+        if (user.isActive()) {
+            throw new com.gestaotecidos.api.exception.BusinessException("Este usuário já está ativo.");
+        }
+        user.reactivate();
+        var saved = repository.save(user);
+        auditLogService.log(AuditModule.USERS, AuditAction.UPDATE, saved.getId(), saved.getName(),
+                "Reativação do usuário");
+        return mapToResponse(saved);
     }
 
     public UserDtos.Response findById(Long id) {
         return mapToResponse(findEntityById(id));
+    }
+
+    public UserDtos.Response getMe() {
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+        var user = repository.findByLogin(login)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", 0L));
+        return mapToResponse(user);
+    }
+
+    @Transactional
+    public UserDtos.Response updateMe(UserDtos.ProfileUpdateRequest data) {
+        String login = SecurityContextHolder.getContext().getAuthentication().getName();
+        var user = repository.findByLogin(login)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", 0L));
+        user.setName(data.name());
+        if (data.password() != null && !data.password().isBlank()) {
+            user.setPassword(passwordEncoder.encode(data.password()));
+        }
+        var saved = repository.save(user);
+        auditLogService.log(AuditModule.USERS, AuditAction.UPDATE, saved.getId(), saved.getName(),
+                "Atualização de perfil próprio");
+        return mapToResponse(saved);
     }
 
     @Transactional

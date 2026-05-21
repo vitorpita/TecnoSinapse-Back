@@ -65,8 +65,8 @@ export default function StockMovementsPage() {
   const [form] = Form.useForm()
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['stock-movements', page],
-    queryFn:  () => stockMovementService.list(page),
+    queryKey: ['stock-movements', page, search],
+    queryFn:  () => stockMovementService.list(page, 20, search || undefined),
   })
 
   const { data: productsData } = useQuery({
@@ -92,14 +92,9 @@ export default function StockMovementsPage() {
   const movements = data?.content ?? []
   const products  = productsData?.content ?? []
 
-  const filtered = movements.filter((m: StockMovementRecord) => {
-    const matchSearch = !search ||
-      m.productName?.toLowerCase().includes(search.toLowerCase()) ||
-      m.reason?.toLowerCase().includes(search.toLowerCase()) ||
-      m.createdBy?.toLowerCase().includes(search.toLowerCase())
-    const matchType = !typeFilter || m.type === typeFilter
-    return matchSearch && matchType
-  })
+  const filtered = movements.filter((m: StockMovementRecord) =>
+    !typeFilter || m.type === typeFilter
+  )
 
   // Totalizadores
   const totalEntradas = movements.filter(m => m.type === 'ENTRADA').reduce((a, m) => a + Number(m.quantity), 0)
@@ -160,7 +155,7 @@ export default function StockMovementsPage() {
               className={styles.searchInput}
               placeholder="Buscar por produto, motivo ou usuário..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(0) }}
             />
           </div>
           <Select
@@ -275,7 +270,7 @@ export default function StockMovementsPage() {
           </div>
         }
       >
-        <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
 
           {/* Produto */}
           <Form.Item
