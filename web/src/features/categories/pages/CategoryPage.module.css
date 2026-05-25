@@ -221,6 +221,22 @@
   border-top: 1px solid #eef2f7;
 }
 
+/* ── Responsive ─────────────────────────── */
+@media (max-width: 768px) {
+  .toolbar { flex-wrap: wrap; gap: 10px; }
+  .searchWrap { max-width: 100%; min-width: 0; flex: 1 1 100%; }
+  .newBtn { width: 100% !important; }
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 420px; }
+}
+
+@media (max-width: 480px) {
+  .table { min-width: 360px; }
+  /* Oculta Descrição em mobile pequeno */
+  .table thead th:nth-child(3),
+  .table tbody td:nth-child(3) { display: none; }
+}
+
 .pageBtn {
   background: #fff;
   border: 1px solid #dde3ea;

@@ -94,3 +94,21 @@
 .pagination { display: flex; justify-content: flex-end; padding: 14px 20px; border-top: 1px solid #eef2f7; }
 
 @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+
+@media (max-width: 768px) {
+  .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .toolbarLeft { flex-direction: column; gap: 8px; }
+  .searchWrap { max-width: 100%; min-width: 0; }
+  .viewToggle { display: none; }
+  .newBtn { width: 100% !important; }
+  /* Em mobile a tabela some — o TSX força view='grid' via useEffect */
+  .table { display: none; }
+}
+
+@media (max-width: 480px) {
+  .cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cardValue { font-size: 15px !important; }
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 12px; }
+  .productImg { height: 120px; }
+}

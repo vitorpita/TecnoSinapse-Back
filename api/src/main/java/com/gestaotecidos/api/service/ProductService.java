@@ -25,7 +25,12 @@ public class ProductService {
     public ProductDtos.Response create(ProductDtos.Request data) {
         var product = new Product();
         updateProductFromDto(product, data);
-        return mapToResponse(repository.save(product));
+        var saved = repository.save(product);
+        if (saved.getSku() == null || saved.getSku().isBlank()) {
+            saved.setSku(String.format("SKU-%05d", saved.getId()));
+            saved = repository.save(saved);
+        }
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -42,6 +47,10 @@ public class ProductService {
 
     public ProductDtos.Response findById(Long id) {
         return mapToResponse(findEntityById(id));
+    }
+
+    public String getNextSku() {
+        return String.format("SKU-%05d", repository.findMaxId() + 1);
     }
 
     @Transactional
@@ -61,7 +70,9 @@ public class ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria", data.categoryId()));
 
         product.setName(data.name());
-        product.setSku(data.sku());
+        if (data.sku() != null && !data.sku().isBlank()) {
+            product.setSku(data.sku());
+        }
         product.setImgUrl(data.imgUrl());
         product.setColor(data.color());
         product.setComposition(data.composition());

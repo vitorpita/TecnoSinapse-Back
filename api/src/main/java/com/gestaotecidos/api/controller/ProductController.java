@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -19,6 +20,12 @@ public class ProductController {
 
     public ProductController(ProductService service) {
         this.service = service;
+    }
+
+    @GetMapping("/next-sku")
+    @PreAuthorize("hasAuthority('product:read')")
+    public ResponseEntity<Map<String, String>> getNextSku() {
+        return ResponseEntity.ok(Map.of("sku", service.getNextSku()));
     }
 
     @PostMapping

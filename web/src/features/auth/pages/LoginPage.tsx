@@ -53,9 +53,7 @@ export default function LoginPage() {
         <div className={styles.card}>
 
           <div className={styles.cardHeader}>
-            <div className={styles.cardLogo}>
-              Tecno<span>Sinapse</span>
-            </div>
+            <img src="/Logo.png" alt="TecnoSinapse" className={styles.cardLogo} />
             <p className={styles.cardSubtitle}>Acesso ao sistema</p>
             <div className={styles.cardAccent} />
           </div>

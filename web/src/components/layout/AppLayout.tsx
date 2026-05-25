@@ -165,12 +165,9 @@ export default function AppLayout() {
       <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''} ${mobileOpen ? styles.sidebarMobileOpen : ''}`}>
         <div className={styles.sidebarLogo} onClick={() => navigate('/')}>
           {effectiveCollapsed ? (
-            <div className={styles.logoIcon}>T<span>S</span></div>
+            <img src="/Logo.png" alt="TecnoSinapse" className={styles.logoImgCollapsed} />
           ) : (
-            <>
-              <div className={styles.logoText}>Tecno<span>Sinapse</span></div>
-              <p className={styles.logoSub}>Gestão de Tecidos</p>
-            </>
+            <img src="/Logo.png" alt="TecnoSinapse" className={styles.logoImg} />
           )}
         </div>
 

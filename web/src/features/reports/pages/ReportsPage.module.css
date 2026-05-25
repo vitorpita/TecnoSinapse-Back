@@ -100,6 +100,7 @@
   border-radius: 10px;
   border: 1px solid #eef2f7;
   overflow: hidden;
+  min-width: 0;
 }
 
 .panelHeader {
@@ -344,6 +345,19 @@
   .grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-@media (max-width: 640px) {
-  .grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 768px) {
+  .grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .panelHeader { flex-direction: column; align-items: stretch; gap: 10px; }
+  .panelControls { flex-wrap: wrap; gap: 8px; }
+  .panelControls .ant-select { flex: 1; }
+  .subBtnRow { flex-direction: column; }
+  .subBtn { width: 100%; }
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 560px; }
+}
+
+@media (max-width: 480px) {
+  .grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .card { padding: 14px 10px 12px; }
+  .iconWrap { width: 40px; height: 40px; font-size: 18px; }
 }

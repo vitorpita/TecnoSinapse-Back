@@ -63,6 +63,19 @@ export default function ProductFormPage() {
     staleTime: 1000 * 60 * 5,
   })
 
+  const { data: nextSku } = useQuery({
+    queryKey: ['product-next-sku'],
+    queryFn: productService.getNextSku,
+    enabled: !isEdit,
+    staleTime: 0,
+  })
+
+  useEffect(() => {
+    if (!isEdit && nextSku) {
+      form.setFieldValue('sku', nextSku)
+    }
+  }, [nextSku, isEdit, form])
+
   useEffect(() => {
     if (product) {
       form.setFieldsValue({
@@ -173,8 +186,9 @@ export default function ProductFormPage() {
   }
 
   const onFinish = (values: ProductFormValues) => {
+    const { sku: _sku, ...rest } = values
     const payload: CreateProductRequest = {
-      ...values,
+      ...(isEdit ? values : rest),
       imgUrl: imgUrl || undefined,
     }
 
@@ -230,7 +244,10 @@ export default function ProductFormPage() {
                 </Col>
                 <Col span={8}>
                   <Form.Item name="sku" label={fieldLabel('SKU / Código')}>
-                    <Input placeholder="Ex: OXF-001" size="large" />
+                    <Input
+                      size="large"
+                      disabled
+                    />
                   </Form.Item>
                 </Col>
               </Row>

@@ -67,6 +67,8 @@ export default function CashRegisterPage() {
   const [closeDrawer, setCloseDrawer] = useState(false)
   const [search, setSearch] = useState('')
   const [historyDetailCash, setHistoryDetailCash] = useState<CashRegisterRecord | null>(null)
+  const [previewHtml,       setPreviewHtml]       = useState('')
+  const [previewOpen,       setPreviewOpen]       = useState(false)
   const [form] = Form.useForm()
   const [closeForm] = Form.useForm()
 
@@ -201,9 +203,7 @@ export default function CashRegisterPage() {
 
   const saving = addMovementMutation.isPending || closeCashMutation.isPending
 
-  const handlePrint = (cash: CashRegisterRecord) => {
-    const win = window.open('', '_blank', 'width=800,height=700')
-    if (!win) return
+  const buildCashHtml = (cash: CashRegisterRecord) => {
     const movements = cash.movements ?? []
     const rows = movements.map(m => {
       const d = MOVEMENT_DISPLAY[m.type] ?? { label: m.type, prefix: '', cssClass: 'amountIn' }
@@ -215,12 +215,16 @@ export default function CashRegisterPage() {
         <td>${formatDate(m.createdAt)}</td>
       </tr>`
     }).join('')
-    win.document.write(`<!DOCTYPE html><html><head>
+    return `<!DOCTYPE html><html><head>
       <meta charset="UTF-8">
       <title>Relatório de Caixa #${cash.id}</title>
       <style>
         body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:24px}
-        h2{margin:0 0 4px;font-size:18px}p{margin:0 0 2px;color:#555;font-size:12px}
+        .header{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+        .header img{height:40px;width:auto;object-fit:contain}
+        .header-info h2{margin:0 0 2px;font-size:18px}
+        .header-info p{margin:0;color:#555;font-size:12px}
+        p{margin:0 0 2px;color:#555;font-size:12px}
         hr{border:none;border-top:1px solid #ddd;margin:12px 0}
         .summary{display:flex;gap:32px;margin:12px 0;flex-wrap:wrap}
         .summary div{min-width:120px}.summary label{font-size:11px;color:#888;display:block}
@@ -229,11 +233,16 @@ export default function CashRegisterPage() {
         th{text-align:left;padding:6px 8px;background:#042C53;color:#fff;font-size:11px}
         td{padding:6px 8px;border-bottom:1px solid #eee}
         tr:last-child td{border-bottom:none}
-        @media print{.no-print{display:none}}
+        @media print{body{margin:0}}
       </style>
     </head><body>
-      <h2>Relatório de Caixa #${cash.id}</h2>
-      <p>Responsável: ${cash.openedByName}</p>
+      <div class="header">
+        <img src="${window.location.origin}/Logo_impresso.png" alt="TecnoSinapse" />
+        <div class="header-info">
+          <h2>Relatório de Caixa #${cash.id}</h2>
+          <p>Responsável: ${cash.openedByName}</p>
+        </div>
+      </div>
       <p>Abertura: ${formatDate(cash.openedAt)}${cash.closedAt ? ' · Fechamento: ' + formatDate(cash.closedAt) : ''}</p>
       <hr/>
       <div class="summary">
@@ -249,9 +258,27 @@ export default function CashRegisterPage() {
         <thead><tr><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Hora</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <script>window.onload=()=>{window.print()}</script>
-    </body></html>`)
+    </body></html>`
+  }
+
+  const handlePrintPreview = (cash: CashRegisterRecord) => {
+    setPreviewHtml(buildCashHtml(cash))
+    setPreviewOpen(true)
+  }
+
+  const handleConfirmPrint = () => {
+    const win = window.open('', '_blank', 'width=820,height=700')
+    if (!win) {
+      alert('Permita pop-ups nesta página para imprimir.')
+      return
+    }
+    const htmlWithScript = previewHtml.replace(
+      '</body>',
+      `<script>window.addEventListener('load',function(){window.print();window.addEventListener('afterprint',function(){window.close()})})</script></body>`
+    )
+    win.document.write(htmlWithScript)
     win.document.close()
+    setPreviewOpen(false)
   }
 
   return (
@@ -378,7 +405,7 @@ export default function CashRegisterPage() {
             <Button
               icon={<PrinterOutlined />}
               size="large"
-              onClick={() => handlePrint(currentCash!)}
+              onClick={() => handlePrintPreview(currentCash!)}
             >
               Imprimir
             </Button>
@@ -635,7 +662,7 @@ export default function CashRegisterPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 32 }}>
             <span>Detalhes do Caixa #{historyDetailCash?.id ?? ''}</span>
             {historyDetailCash && (
-              <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrint(historyDetailCash)}>
+              <Button size="small" icon={<PrinterOutlined />} onClick={() => handlePrintPreview(historyDetailCash!)}>
                 Imprimir
               </Button>
             )}
@@ -712,6 +739,32 @@ export default function CashRegisterPage() {
             )}
           </>
         )}
+      </Modal>
+
+      {/* Pré-visualização de impressão */}
+      <Modal
+        open={previewOpen}
+        title={
+          <span style={{ fontFamily: "'Exo 2', sans-serif", fontWeight: 700, color: '#042C53' }}>
+            <PrinterOutlined style={{ marginRight: 8 }} />
+            Pré-visualização de Impressão
+          </span>
+        }
+        onCancel={() => setPreviewOpen(false)}
+        onOk={handleConfirmPrint}
+        okText={<><PrinterOutlined style={{ marginRight: 6 }} />Confirmar Impressão</>}
+        cancelText="Fechar"
+        width="82vw"
+        style={{ top: 24 }}
+        styles={{ body: { padding: 0, overflow: 'hidden', borderRadius: '0 0 8px 8px' } }}
+        okButtonProps={{ size: 'large' }}
+        cancelButtonProps={{ size: 'large' }}
+      >
+        <iframe
+          srcDoc={previewHtml}
+          style={{ width: '100%', height: '68vh', border: 'none', display: 'block' }}
+          title="Pré-visualização de impressão"
+        />
       </Modal>
 
       <Drawer

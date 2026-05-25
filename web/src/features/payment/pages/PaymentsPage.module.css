@@ -134,3 +134,27 @@
 .amountValue { font-family: 'Exo 2', sans-serif; font-size: 14px; font-weight: 900; color: #042C53; }
 
 @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+
+@media (max-width: 768px) {
+  .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .toolbarLeft { flex-direction: column; gap: 8px; }
+  .searchWrap { max-width: 100%; min-width: 0; }
+  .newBtn { width: 100% !important; }
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 580px; }
+  /* Oculta Parcelas e Vencimento */
+  .table thead th:nth-child(6),
+  .table tbody td:nth-child(6),
+  .table thead th:nth-child(8),
+  .table tbody td:nth-child(8) { display: none; }
+}
+
+@media (max-width: 480px) {
+  .cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cardValue { font-size: 15px !important; }
+  .table { min-width: 480px; }
+  /* Oculta Método também */
+  .table thead th:nth-child(4),
+  .table tbody td:nth-child(4) { display: none; }
+}

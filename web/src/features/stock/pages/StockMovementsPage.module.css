@@ -72,3 +72,28 @@
 .warningBox { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 300; color: #92400e; margin-top: -8px; margin-bottom: 16px; }
 
 @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+
+@media (max-width: 768px) {
+  .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .toolbarLeft { flex-direction: column; gap: 8px; }
+  .searchWrap { max-width: 100%; min-width: 0; }
+  .newBtn { width: 100% !important; }
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 580px; font-size: 14px; }
+  .table tbody td { padding: 14px 16px; font-size: 13px; }
+  /* Oculta Referência e Usuário */
+  .table thead th:nth-child(6),
+  .table tbody td:nth-child(6),
+  .table thead th:nth-child(7),
+  .table tbody td:nth-child(7) { display: none; }
+}
+
+@media (max-width: 480px) {
+  .cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cardValue { font-size: 15px !important; }
+  .table { min-width: 480px; }
+  /* Oculta Motivo também */
+  .table thead th:nth-child(5),
+  .table tbody td:nth-child(5) { display: none; }
+}

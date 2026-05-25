@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { App, Button, Select, Tag, Tooltip, Popconfirm, Pagination, Empty, Spin } from 'antd'
 import { PlusOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -18,6 +18,13 @@ export default function ProductsPage() {
   const [page,    setPage]    = useState(0)
   const [search,  setSearch]  = useState('')
   const [view,    setView]    = useState<'table' | 'grid'>('table')
+
+  useEffect(() => {
+    const check = () => { if (window.innerWidth <= 768) setView('grid') }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['products', page, search],

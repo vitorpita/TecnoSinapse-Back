@@ -248,12 +248,19 @@ export default function ReportsPage() {
     const data = buildPrintData()
     if (!data) return
     const html = buildPrintHtml(buildOptions(getTotalRecords()), data)
-    setPreviewHtml(html)
+    // Strip auto-print script so iframe preview doesn't trigger print dialog immediately
+    const safeHtml = html.replace(/<script[\s\S]*?<\/script>/gi, '')
+    setPreviewHtml(safeHtml)
     setPreviewOpen(true)
   }
 
   const handleConfirmPrint = () => {
-    openPrintWindow(previewHtml)
+    // Re-inject the auto-print script only when opening the real print window
+    const htmlWithPrint = previewHtml.replace(
+      '</body>',
+      `<script>window.addEventListener('load',function(){window.print();window.addEventListener('afterprint',function(){window.close()})})</script></body>`
+    )
+    openPrintWindow(htmlWithPrint)
     setPreviewOpen(false)
   }
 

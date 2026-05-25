@@ -93,6 +93,11 @@ export const productService = {
     return data
   },
 
+  getNextSku: async (): Promise<string> => {
+    const { data } = await api.get('/products/next-sku')
+    return data.sku
+  },
+
   getProviders: async (): Promise<PageResponse<ProviderOption>> => {
     const { data } = await api.get('/persons', { params: { size: 200, role: 'FORNECEDOR' } })
     if (Array.isArray(data)) {

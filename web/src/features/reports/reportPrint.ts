@@ -31,7 +31,6 @@ const dt  = (iso?: string) => {
   return new Date(safe).toLocaleDateString('pt-BR')
 }
 
-// headers prefixed with '>' = right-aligned column
 function tbl(headers: string[], rows: string[][]): string {
   const align = headers.map(h => h.startsWith('>'))
   const ths = headers.map((h, i) => `<th${align[i] ? ' class="r"' : ''}>${h.replace(/^>/, '')}</th>`).join('')
@@ -144,8 +143,7 @@ const PRINT_CSS = `
 
   .print-header { border-bottom: 3px solid #042C53; padding-bottom: 14px; margin-bottom: 16px; }
   .print-header-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .print-logo { font-size: 22px; font-weight: 900; color: #042C53; letter-spacing: -0.5px; }
-  .print-logo span { color: #378ADD; }
+  .print-logo { height: 44px; width: auto; display: block; object-fit: contain; }
   .print-title { font-size: 14px; font-weight: 700; color: #042C53; margin-top: 4px; }
   .print-title small { font-size: 11px; font-weight: 300; color: #888; }
   .print-emitted { text-align: right; font-size: 10px; color: #555; line-height: 1.9; }
@@ -204,7 +202,7 @@ export function buildPrintHtml(options: PrintOptions, data: PrintData): string {
   <div class="print-header">
     <div class="print-header-top">
       <div>
-        <div class="print-logo">Tecno<span>Sinapse</span></div>
+        <img src="${window.location.origin}/Logo_impresso.png" alt="TecnoSinapse" class="print-logo" />
         <div class="print-title">${options.reportTitle}<small> — ${options.reportDesc}</small></div>
       </div>
       <div class="print-emitted">
@@ -219,7 +217,7 @@ export function buildPrintHtml(options: PrintOptions, data: PrintData): string {
   ${buildTablesHtml(data)}
 
   <div class="print-footer">
-    <span>TecnoSinapse — Sistema de Gestão de Tecidos</span>
+    <span>TecnoSinapse — Sistema de Gestão</span>
     <span>Gerado em ${now} por ${options.userName}</span>
   </div>
 

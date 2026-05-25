@@ -23,10 +23,13 @@
 }
 
 .sidebarLogo {
-  padding: 22px 20px 18px;
+  padding: 16px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
   cursor: pointer;
   transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .sidebarLogo:hover { opacity: 0.85; }
 
@@ -58,6 +61,22 @@
   color: rgba(133,183,235,0.45);
   text-transform: uppercase;
   margin-top: 4px;
+}
+
+.logoImg {
+  width: 170px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.logoImgCollapsed {
+  width: 42px;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .sidebarMenu {

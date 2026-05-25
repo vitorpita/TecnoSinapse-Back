@@ -24,4 +24,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryIdAndActiveTrue(Long categoryId);
     List<Product> findByProviderIdAndActiveTrue(Long providerId);
     List<Product> findByStockQuantityLessThanAndActiveTrue(BigDecimal threshold);
+
+    @Query("SELECT COALESCE(MAX(p.id), 0) FROM Product p")
+    Long findMaxId();
 }
