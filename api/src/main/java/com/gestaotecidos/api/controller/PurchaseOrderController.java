@@ -54,13 +54,36 @@ public class PurchaseOrderController {
         return ResponseEntity.ok(service.update(id, data));
     }
 
-    @PatchMapping("/{id}/receive")
+    @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('order:write')")
-    @Transactional
+    public ResponseEntity<PurchaseOrderDtos.Response> approve(@PathVariable Long id) {
+        return ResponseEntity.ok(service.approve(id));
+    }
+
+    @PatchMapping("/{id}/send-to-receiving")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<PurchaseOrderDtos.Response> sendToReceiving(@PathVariable Long id) {
+        return ResponseEntity.ok(service.sendToReceiving(id));
+    }
+
+    @PostMapping("/{id}/receive")
+    @PreAuthorize("hasAuthority('order:write')")
     public ResponseEntity<PurchaseOrderDtos.Response> receive(
             @PathVariable Long id,
             @RequestBody @Valid PurchaseOrderDtos.ReceiveRequest data) {
         return ResponseEntity.ok(service.receive(id, data));
+    }
+
+    @PatchMapping("/{id}/finalize")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<PurchaseOrderDtos.Response> finalize(@PathVariable Long id) {
+        return ResponseEntity.ok(service.finalize(id));
+    }
+
+    @PatchMapping("/{id}/cancel")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<PurchaseOrderDtos.Response> cancel(@PathVariable Long id) {
+        return ResponseEntity.ok(service.cancel(id));
     }
 
     @DeleteMapping("/{id}")

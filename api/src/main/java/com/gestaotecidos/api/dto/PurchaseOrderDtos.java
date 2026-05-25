@@ -1,20 +1,24 @@
 package com.gestaotecidos.api.dto;
 
+import com.gestaotecidos.api.domain.Enums.FreightType;
 import com.gestaotecidos.api.domain.Enums.PurchaseOrderStatus;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PurchaseOrderDtos {
 
     record Request(
             @NotNull Long supplierId,
-            @NotNull PurchaseOrderStatus status,
             LocalDate expectedDeliveryDate,
+            @NotNull String paymentCondition,
+            FreightType freightType,
             String observation,
             @NotEmpty List<ItemRequest> items
     ) {}
@@ -26,12 +30,16 @@ public interface PurchaseOrderDtos {
     ) {}
 
     record ReceiveRequest(
-            @NotEmpty List<ReceiveItemRequest> items
+            String invoiceNumber,
+            String observations,
+            @NotEmpty List<ItemReceiveRequest> items
     ) {}
 
-    record ReceiveItemRequest(
-            @NotNull Long purchaseOrderItemId,
-            @NotNull @Positive BigDecimal receivedQuantity
+    record ItemReceiveRequest(
+            @NotNull Long itemId,
+            @NotNull @PositiveOrZero BigDecimal receivedQuantity,
+            @PositiveOrZero BigDecimal damagedQuantity,
+            String damageReason
     ) {}
 
     record Response(
@@ -41,7 +49,12 @@ public interface PurchaseOrderDtos {
             PurchaseOrderStatus status,
             BigDecimal totalAmount,
             LocalDate expectedDeliveryDate,
+            String paymentCondition,
+            FreightType freightType,
+            String invoiceNumber,
             String observation,
+            LocalDateTime receivedAt,
+            LocalDateTime createdAt,
             List<ItemResponse> items
     ) {}
 
@@ -51,7 +64,10 @@ public interface PurchaseOrderDtos {
             String productName,
             BigDecimal quantity,
             BigDecimal receivedQuantity,
+            BigDecimal damagedQuantity,
+            BigDecimal pendingQuantity,
             BigDecimal unitCost,
-            BigDecimal subTotal
+            BigDecimal subTotal,
+            String damageReason
     ) {}
 }

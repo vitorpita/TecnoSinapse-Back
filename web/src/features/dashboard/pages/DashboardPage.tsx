@@ -68,7 +68,7 @@ export default function DashboardPage() {
   const statCards = [
     {
       label:   'Vendas',
-      value:   `R$ ${(stats.totalSalesMonth / 1000).toFixed(1)}k`,
+      value:   Number(stats.totalSalesMonth).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       sub:     'Total do mês',
       icon:    TrendingUp,
       color:   '#378ADD',
@@ -76,7 +76,7 @@ export default function DashboardPage() {
     },
     {
       label:   'Vendas Hoje',
-      value:   `R$ ${(stats.totalSalesDay / 1000).toFixed(1)}k`,
+      value:   Number(stats.totalSalesDay).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       sub:     `${stats.ordersDay} pedidos hoje`,
       icon:    ShoppingCart,
       color:   '#1D9E75',

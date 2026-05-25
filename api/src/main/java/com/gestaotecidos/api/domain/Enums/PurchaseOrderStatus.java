@@ -1,10 +1,11 @@
 package com.gestaotecidos.api.domain.Enums;
 
 public enum PurchaseOrderStatus {
-    RASCUNHO,
-    ENVIADO,
-    CONFIRMADO,
+    ABERTO,
+    APROVADO,
+    AGUARDANDO_RECEBIMENTO,
     RECEBIDO_PARCIAL,
-    RECEBIDO,
-    CANCELADO
+    RECEBIDO_TOTAL,
+    CANCELADO,
+    FINALIZADO
 }

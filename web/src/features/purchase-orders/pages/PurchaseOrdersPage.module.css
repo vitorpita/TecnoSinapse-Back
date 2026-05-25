@@ -52,7 +52,9 @@
 .actions { display: flex; align-items: center; gap: 4px; }
 .actionBtn { width: 30px; height: 30px; background: none; border: 1px solid #dde3ea; border-radius: 6px; color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }
 .actionBtn:hover { border-color: #378ADD; color: #378ADD; background: #f0f7ff; }
-.actionDanger:hover { border-color: #E24B4A !important; color: #E24B4A !important; background: #fff1f0 !important; }
+.actionDanger:hover  { border-color: #E24B4A !important; color: #E24B4A !important; background: #fff1f0 !important; }
+.actionPrimary:hover { border-color: #378ADD !important; color: #378ADD !important; background: #f0f7ff !important; }
+.actionSuccess:hover { border-color: #1D9E75 !important; color: #1D9E75 !important; background: #f0fdf8 !important; }
 
 .centerState { display: flex; align-items: center; justify-content: center; padding: 60px 20px; }
 .errorText { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 300; color: #E24B4A; }
@@ -78,4 +80,92 @@
 .discountText { color: #E24B4A; }
 .detailTotalFinal { font-size: 18px !important; font-weight: 900 !important; color: #042C53 !important; padding-top: 8px; border-top: 1px solid #eef2f7; }
 
-@media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+/* Inspection modal */
+.inspModal { display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; }
+
+.inspHeader { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 12px; background: #042C53; }
+.inspHeaderLeft { display: flex; align-items: center; gap: 12px; }
+.inspHeaderIcon { font-size: 20px; color: #85B7EB; }
+.inspTitle    { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 700; color: #fff; }
+.inspSubtitle { font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 300; color: #85B7EB; margin-top: 2px; }
+
+.inspProgress { padding: 12px 20px 4px; }
+.inspProgressLabel { font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 300; color: #888; display: block; margin-top: 6px; }
+
+.inspList { padding: 8px 20px 12px; display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; }
+
+.inspItem {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border: 1px solid #eef2f7; border-radius: 8px;
+  cursor: pointer; transition: all 0.15s; background: #fafbfc; user-select: none;
+}
+.inspItem:hover { border-color: #94bfe8; background: #f0f7ff; }
+.inspItemOk { border-color: #6dd9b5 !important; background: #f0fdf8 !important; }
+
+.inspItemBody { flex: 1; min-width: 0; }
+.inspItemName  { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 600; color: #042C53; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inspItemMeta  { display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+.inspQtyBadge  { background: #dbeafe; color: #1e40af; font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 600; border-radius: 100px; padding: 1px 8px; }
+.inspItemPrice { font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 300; color: #888; }
+.inspItemTotal { font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 600; color: #042C53; }
+
+.inspItemStatus    { font-size: 16px; color: #dde3ea; flex-shrink: 0; width: 18px; display: flex; align-items: center; justify-content: center; }
+.inspItemStatusOk  { color: #1D9E75 !important; }
+.inspDot           { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #dde3ea; display: inline-block; }
+
+.inspFooter { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid #eef2f7; background: #fafbfc; }
+
+/* Receipt modal items */
+.receiptItem { padding: 12px 0; border-bottom: 1px solid #f0f4f8; }
+.receiptItem:last-child { border-bottom: none; }
+.receiptItemHeader { display: flex; flex-direction: column; gap: 4px; margin-bottom: 2px; }
+.receiptQtyInfo { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.receiptReceivedBadge { background: #dcfce7; color: #166534; font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 600; border-radius: 100px; padding: 1px 8px; }
+.receiptPendingBadge  { background: #fef3c7; color: #92400e; font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 600; border-radius: 100px; padding: 1px 8px; }
+.receiptNetLine { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 300; color: #555; }
+.receiptDamageNote { color: #E24B4A; }
+.receiptTotal { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #f8fafc; border-top: 1px solid #eef2f7; }
+.receiptTotalLabel { font-family: 'Rajdhani', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #888; }
+.receiptTotalValue { font-family: 'Exo 2', sans-serif; font-size: 16px; font-weight: 900; color: #042C53; }
+
+/* ── Responsividade ──────────────────────────────────── */
+
+/* Tablet largo */
+@media (max-width: 1100px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  .toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .toolbarLeft { flex-direction: column; gap: 8px; }
+  .searchWrap { max-width: 100%; }
+  .newBtn { width: 100% !important; }
+
+  /* Tabela com scroll horizontal */
+  .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table { min-width: 640px; }
+
+  /* Esconde colunas menos importantes */
+  .table thead th:nth-child(3),
+  .table tbody td:nth-child(3) { display: none; }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cardValue { font-size: 15px; }
+
+  .table { min-width: 560px; }
+
+  /* Esconde NF e Itens, mantém ID, Fornecedor, Previsão, Status, Total, Ações */
+  .table thead th:nth-child(3),
+  .table tbody td:nth-child(3),
+  .table thead th:nth-child(4),
+  .table tbody td:nth-child(4) { display: none; }
+
+  /* Modal de conferência full width */
+  .inspModal { border-radius: 0; }
+}

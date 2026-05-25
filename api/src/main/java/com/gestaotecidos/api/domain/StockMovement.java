@@ -3,13 +3,11 @@ package com.gestaotecidos.api.domain;
 import com.gestaotecidos.api.domain.Enums.StockMovementType;
 import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
-import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "stock_movements")
-@Audited
 public class StockMovement extends BaseDomain {
 
     @ManyToOne(optional = false)

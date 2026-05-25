@@ -77,6 +77,7 @@ public class GlobalExceptionHandler {
         System.err.println("===== CONSTRAINT VIOLATION =====");
         System.err.println("Endpoint: " + request.getRequestURI());
         System.err.println("Causa: " + ex.getMostSpecificCause().getMessage());
+        ex.printStackTrace(System.err);
         System.err.println("================================");
         String cause = ex.getMostSpecificCause().getMessage();
         String msg;

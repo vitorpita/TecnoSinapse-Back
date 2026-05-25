@@ -1,5 +1,6 @@
 package com.gestaotecidos.api.domain;
 
+import com.gestaotecidos.api.domain.Enums.FreightType;
 import com.gestaotecidos.api.domain.Enums.PurchaseOrderStatus;
 import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
@@ -7,6 +8,7 @@ import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +22,8 @@ public class PurchaseOrder extends BaseDomain {
     private Person supplier;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PurchaseOrderStatus status = PurchaseOrderStatus.RASCUNHO;
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
+    private PurchaseOrderStatus status = PurchaseOrderStatus.ABERTO;
 
     @Column(nullable = false)
     private BigDecimal totalAmount = BigDecimal.ZERO;
@@ -30,6 +32,18 @@ public class PurchaseOrder extends BaseDomain {
 
     @Column(columnDefinition = "TEXT")
     private String observation;
+
+    @Column(length = 100)
+    private String paymentCondition;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(50)")
+    private FreightType freightType;
+
+    @Column(length = 100)
+    private String invoiceNumber;
+
+    private LocalDateTime receivedAt;
 
     @OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PurchaseOrderItem> items = new ArrayList<>();
@@ -46,6 +60,14 @@ public class PurchaseOrder extends BaseDomain {
     public void setExpectedDeliveryDate(LocalDate expectedDeliveryDate) { this.expectedDeliveryDate = expectedDeliveryDate; }
     public String getObservation() { return observation; }
     public void setObservation(String observation) { this.observation = observation; }
+    public String getPaymentCondition() { return paymentCondition; }
+    public void setPaymentCondition(String paymentCondition) { this.paymentCondition = paymentCondition; }
+    public FreightType getFreightType() { return freightType; }
+    public void setFreightType(FreightType freightType) { this.freightType = freightType; }
+    public String getInvoiceNumber() { return invoiceNumber; }
+    public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
+    public LocalDateTime getReceivedAt() { return receivedAt; }
+    public void setReceivedAt(LocalDateTime receivedAt) { this.receivedAt = receivedAt; }
     public List<PurchaseOrderItem> getItems() { return items; }
 
     public void addItem(PurchaseOrderItem item) {

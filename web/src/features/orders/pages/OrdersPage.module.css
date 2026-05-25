@@ -230,6 +230,12 @@
   background: #fff1f0 !important;
 }
 
+.actionSuccess:hover {
+  border-color: #1D9E75 !important;
+  color: #1D9E75 !important;
+  background: #f0fdf4 !important;
+}
+
 /* States */
 .centerState {
   display: flex;

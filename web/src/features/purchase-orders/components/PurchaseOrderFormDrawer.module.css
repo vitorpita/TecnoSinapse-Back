@@ -36,3 +36,10 @@
 .supplierOption { display: flex; flex-direction: column; gap: 2px; padding: 2px 0; }
 .supplierName { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 600; color: #042C53; }
 .supplierDoc { font-family: 'Exo 2', sans-serif; font-size: 11px; font-weight: 300; color: #888; }
+
+/* ── Responsividade ──────────────────────────────────── */
+@media (max-width: 600px) {
+  .drawerFooter { flex-direction: column; align-items: stretch; gap: 12px; }
+  .totalsFooter { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .itemSubtotal { text-align: left; margin-top: 8px; }
+}

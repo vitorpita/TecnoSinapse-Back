@@ -4,7 +4,6 @@ import com.gestaotecidos.api.domain.Enums.InstallmentStatus;
 import com.gestaotecidos.api.domain.Enums.PaymentMethod;
 import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
-import org.hibernate.envers.Audited;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "financial_installments")
-@Audited
 public class FinancialInstallment extends BaseDomain {
 
     @ManyToOne(optional = false)

@@ -1,45 +1,69 @@
 import { api } from '@/libs/axios'
 
-export type PurchaseOrderStatus = 'PENDENTE' | 'CONFIRMADO' | 'RECEBIDO' | 'CANCELADO'
+export type PurchaseOrderStatus =
+  | 'ABERTO'
+  | 'APROVADO'
+  | 'AGUARDANDO_RECEBIMENTO'
+  | 'RECEBIDO_PARCIAL'
+  | 'RECEBIDO_TOTAL'
+  | 'CANCELADO'
+  | 'FINALIZADO'
+
+export type FreightType = 'CIF' | 'FOB' | 'OUTRO'
 
 export interface PurchaseOrderItem {
-  id?:         number
-  productId:   number
-  productName?: string
-  quantity:    number
-  unitCost:    number
-  subTotal?:   number
+  id?:              number
+  productId:        number
+  productName?:     string
+  quantity:         number
+  unitCost:         number
+  subTotal?:        number
+  receivedQuantity?: number
+  damagedQuantity?:  number
+  pendingQuantity?:  number
+  damageReason?:    string
 }
 
 export interface PurchaseOrderRecord {
-  id:              number
-  supplierId:      number
-  supplierName:    string
-  status:          PurchaseOrderStatus
-  totalAmount:     number
-  freightCost?:    number
-  discount?:       number
-  notes?:          string
-  expectedAt?:     string
-  receivedAt?:     string
-  invoiceNumber?:  string
-  items:           PurchaseOrderItem[]
-  createdAt?:      string
+  id:                    number
+  supplierId:            number
+  supplierName:          string
+  status:                PurchaseOrderStatus
+  totalAmount:           number
+  observation?:          string
+  expectedDeliveryDate?: string
+  paymentCondition?:     string
+  freightType?:          FreightType
+  invoiceNumber?:        string
+  receivedAt?:           string
+  createdAt?:            string
+  items:                 PurchaseOrderItem[]
 }
 
 export interface CreatePurchaseOrderRequest {
-  supplierId:     number
-  status:         PurchaseOrderStatus
-  freightCost?:   number
-  discount?:      number
-  notes?:         string
-  expectedAt?:    string
-  invoiceNumber?: string
+  supplierId:            number
+  expectedDeliveryDate?: string
+  paymentCondition:      string
+  freightType?:          FreightType
+  observation?:          string
   items: {
     productId: number
     quantity:  number
     unitCost:  number
   }[]
+}
+
+export interface ReceiveItemRequest {
+  itemId:            number
+  receivedQuantity:  number
+  damagedQuantity?:  number
+  damageReason?:     string
+}
+
+export interface ReceiveRequest {
+  invoiceNumber?: string
+  observations?:  string
+  items:          ReceiveItemRequest[]
 }
 
 export interface SupplierOption {
@@ -95,8 +119,33 @@ export const purchaseOrderService = {
     await api.delete(`/purchase-orders/${id}`)
   },
 
+  approve: async (id: number): Promise<PurchaseOrderRecord> => {
+    const { data } = await api.patch(`/purchase-orders/${id}/approve`)
+    return data
+  },
+
+  sendToReceiving: async (id: number): Promise<PurchaseOrderRecord> => {
+    const { data } = await api.patch(`/purchase-orders/${id}/send-to-receiving`)
+    return data
+  },
+
+  receive: async (id: number, payload: ReceiveRequest): Promise<PurchaseOrderRecord> => {
+    const { data } = await api.post(`/purchase-orders/${id}/receive`, payload)
+    return data
+  },
+
+  finalize: async (id: number): Promise<PurchaseOrderRecord> => {
+    const { data } = await api.patch(`/purchase-orders/${id}/finalize`)
+    return data
+  },
+
+  cancel: async (id: number): Promise<PurchaseOrderRecord> => {
+    const { data } = await api.patch(`/purchase-orders/${id}/cancel`)
+    return data
+  },
+
   getSuppliers: async (): Promise<PageResponse<SupplierOption>> => {
-    const { data } = await api.get('/persons', { params: { size: 500 } })
+    const { data } = await api.get('/persons', { params: { size: 500, role: 'FORNECEDOR' } })
     if (Array.isArray(data)) {
       return { content: data, totalElements: data.length, totalPages: 1, number: 0, size: data.length }
     }

@@ -167,10 +167,10 @@ export default function NewPaymentPage() {
 
       {!loadingCash && !currentCash && (
         <Alert
-          type="warning"
+          type="error"
           showIcon
           message="Caixa fechado"
-          description="Nenhum caixa está aberto. O recebimento será registrado sem movimentação de caixa. Abra o caixa antes de processar pagamentos."
+          description="Nenhum caixa está aberto. Não é possível registrar pagamentos sem um caixa aberto. Abra o caixa antes de processar pagamentos."
           style={{ marginBottom: 16, borderRadius: 8 }}
         />
       )}
@@ -401,6 +401,7 @@ export default function NewPaymentPage() {
                 htmlType="submit"
                 icon={<SaveOutlined />}
                 loading={createMutation.isPending}
+                disabled={!currentCash}
                 block
                 size="large"
                 className={styles.submitBtn}

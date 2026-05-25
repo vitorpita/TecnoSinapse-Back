@@ -3,6 +3,7 @@ package com.gestaotecidos.api.domain;
 import com.gestaotecidos.api.domain.commun.BaseDomain;
 import jakarta.persistence.*;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ public class CashRegister extends BaseDomain {
     @Column(columnDefinition = "TEXT")
     private String observation;
 
+    @NotAudited
     @OneToMany(mappedBy = "cashRegister", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CashMovement> movements = new ArrayList<>();
 

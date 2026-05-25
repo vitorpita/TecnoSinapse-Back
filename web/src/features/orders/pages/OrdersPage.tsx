@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { App, Button, Input, Select, Tag, Tooltip, Popconfirm, Pagination, Empty, Spin, Modal, Form } from 'antd'
 import { PlusOutlined, SearchOutlined, EyeOutlined,
   EditOutlined, CloseCircleOutlined, DollarOutlined,
-  SendOutlined, CheckCircleOutlined, FileTextOutlined } from '@ant-design/icons'
+  SendOutlined, CheckCircleOutlined, FileTextOutlined,
+  TruckOutlined, CheckOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { useOrders, useDeleteOrder, useCancelOrder, useApproveOrder, useAwaitApprovalOrder, useFaturarOrder } from '../hooks/useOrders'
+import { useOrders, useDeleteOrder, useCancelOrder, useApproveOrder, useAwaitApprovalOrder, useFaturarOrder, useShipOrder, useDeliverOrder } from '../hooks/useOrders'
 import OrderFormDrawer   from '../components/OrderFormDrawer'
 import OrderDetailDrawer from '../components/OrderDetailDrawer'
 import type { OrderResponse, OrderStatus } from '../types/order.types'
@@ -43,6 +44,8 @@ export default function OrdersPage() {
   const awaitApproval   = useAwaitApprovalOrder()
   const approveOrder    = useApproveOrder()
   const faturarOrder    = useFaturarOrder()
+  const shipOrder       = useShipOrder()
+  const deliverOrder    = useDeliverOrder()
 
   const orders = data?.content ?? []
 
@@ -111,6 +114,16 @@ export default function OrdersPage() {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       message.error(msg || 'Erro ao faturar pedido. Verifique o estoque e o caixa.')
     }
+  }
+
+  const handleShip = async (id: number) => {
+    await shipOrder.mutateAsync(id)
+    await refetch()
+  }
+
+  const handleDeliver = async (id: number) => {
+    await deliverOrder.mutateAsync(id)
+    await refetch()
   }
 
   const handleCancel = async (id: number) => {
@@ -291,7 +304,7 @@ export default function OrdersPage() {
                             </Tooltip>
                           )}
 
-                          {order.status === 'FATURADO' && (
+                          {(order.status === 'FATURADO' || order.status === 'ENVIADO') && (
                             <Tooltip title="Registrar pagamento">
                               <button
                                 className={`${styles.actionBtn} ${styles.actionPayment}`}
@@ -302,7 +315,39 @@ export default function OrdersPage() {
                             </Tooltip>
                           )}
 
-                          {!isCanceled && (
+                          {order.status === 'FATURADO' && (
+                            <Popconfirm
+                              title="Enviar para cliente"
+                              description="Confirma que o pedido foi enviado ao cliente?"
+                              onConfirm={() => handleShip(order.id)}
+                              okText="Confirmar envio"
+                              cancelText="Cancelar"
+                            >
+                              <Tooltip title="Enviar para cliente">
+                                <button className={`${styles.actionBtn} ${styles.actionPayment}`}>
+                                  <TruckOutlined />
+                                </button>
+                              </Tooltip>
+                            </Popconfirm>
+                          )}
+
+                          {order.status === 'ENVIADO' && (
+                            <Popconfirm
+                              title="Marcar como entregue"
+                              description="Confirma que o pedido foi entregue ao cliente?"
+                              onConfirm={() => handleDeliver(order.id)}
+                              okText="Confirmar entrega"
+                              cancelText="Cancelar"
+                            >
+                              <Tooltip title="Marcar como entregue">
+                                <button className={`${styles.actionBtn} ${styles.actionSuccess}`}>
+                                  <CheckOutlined />
+                                </button>
+                              </Tooltip>
+                            </Popconfirm>
+                          )}
+
+                          {!isCanceled && order.status !== 'ENTREGUE' && (
                             <Popconfirm
                               title="Cancelar pedido"
                               description="Tem certeza que deseja cancelar este pedido?"

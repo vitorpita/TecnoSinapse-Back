@@ -67,6 +67,18 @@ public class OrderController {
         return ResponseEntity.ok(service.faturar(id, body));
     }
 
+    @PatchMapping("/{id}/ship")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<OrderDtos.Response> ship(@PathVariable Long id) {
+        return ResponseEntity.ok(service.ship(id));
+    }
+
+    @PatchMapping("/{id}/deliver")
+    @PreAuthorize("hasAuthority('order:write')")
+    public ResponseEntity<OrderDtos.Response> deliver(@PathVariable Long id) {
+        return ResponseEntity.ok(service.deliver(id));
+    }
+
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasAuthority('order:write')")
     public ResponseEntity<OrderDtos.Response> cancel(@PathVariable Long id) {

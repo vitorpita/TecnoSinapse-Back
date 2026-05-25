@@ -116,7 +116,7 @@ public class CashRegisterService {
     }
 
     public Optional<CashRegisterDtos.Response> findOpenRegister() {
-        return repository.findOpenRegister().map(this::mapToResponse);
+        return repository.findOpenRegisterWithMovements().map(this::mapToResponse);
     }
 
     public Page<CashRegisterDtos.Response> findAll(Pageable pageable) {

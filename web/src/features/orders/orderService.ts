@@ -50,6 +50,16 @@ export const orderService = {
     return data
   },
 
+  ship: async (id: number): Promise<OrderResponse> => {
+    const { data } = await api.patch<OrderResponse>(`/orders/${id}/ship`)
+    return data
+  },
+
+  deliver: async (id: number): Promise<OrderResponse> => {
+    const { data } = await api.patch<OrderResponse>(`/orders/${id}/deliver`)
+    return data
+  },
+
   cancel: async (id: number): Promise<OrderResponse> => {
     const { data } = await api.patch<OrderResponse>(`/orders/${id}/cancel`)
     return data

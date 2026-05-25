@@ -62,13 +62,7 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: (data: OrderRequest) => orderService.create(data),
     onSuccess: () => {
-      message.success('Pedido criado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY })
-      queryClient.refetchQueries({ queryKey: ORDERS_QUERY_KEY })
-    },
-    onError: (error: any) => {
-      const errorMsg = error?.response?.data?.message || 'Erro ao criar pedido'
-      message.error(errorMsg)
     },
   })
 }
@@ -80,13 +74,7 @@ export function useUpdateOrder() {
     mutationFn: ({ id, payload }: { id: number; payload: OrderRequest }) =>
       orderService.update(id, payload),
     onSuccess: () => {
-      message.success('Pedido atualizado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY })
-      queryClient.refetchQueries({ queryKey: ORDERS_QUERY_KEY })
-    },
-    onError: (error: any) => {
-      const errorMsg = error?.response?.data?.message || 'Erro ao atualizar pedido'
-      message.error(errorMsg)
     },
   })
 }
@@ -134,10 +122,43 @@ export function useFaturarOrder() {
     onSuccess: () => {
       message.success('Pedido faturado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY })
-      queryClient.refetchQueries({ queryKey: ORDERS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] })
     },
     onError: (error: any) => {
       const errorMsg = error?.response?.data?.message || 'Erro ao faturar pedido'
+      message.error(errorMsg)
+    },
+  })
+}
+
+export function useShipOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => orderService.ship(id),
+    onSuccess: () => {
+      message.success('Pedido enviado ao cliente!')
+      queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY })
+      queryClient.refetchQueries({ queryKey: ORDERS_QUERY_KEY })
+    },
+    onError: (error: any) => {
+      const errorMsg = error?.response?.data?.message || 'Erro ao enviar pedido'
+      message.error(errorMsg)
+    },
+  })
+}
+
+export function useDeliverOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => orderService.deliver(id),
+    onSuccess: () => {
+      message.success('Pedido marcado como entregue!')
+      queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY })
+      queryClient.refetchQueries({ queryKey: ORDERS_QUERY_KEY })
+    },
+    onError: (error: any) => {
+      const errorMsg = error?.response?.data?.message || 'Erro ao marcar pedido como entregue'
       message.error(errorMsg)
     },
   })
@@ -151,7 +172,8 @@ export function useCancelOrder() {
     onSuccess: () => {
       message.success('Pedido cancelado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY })
-      queryClient.refetchQueries({ queryKey: ORDERS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: ['stock-movements'] })
     },
     onError: (error: any) => {
       const errorMsg = error?.response?.data?.message || 'Erro ao cancelar pedido'

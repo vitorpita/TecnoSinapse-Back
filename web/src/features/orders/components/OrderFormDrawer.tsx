@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { App, Drawer, Form, Select, Input, Button, InputNumber, Divider, Tag, Space, Spin, Modal } from 'antd'
+import { App, Drawer, Form, Select, Input, Button, InputNumber, Divider, Tag, Space, Spin, Modal, Alert } from 'antd'
 import { MoneyInput } from '@/components/MoneyInput'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useForm, Controller, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery } from '@tanstack/react-query'
 import type { OrderResponse, ProductOption } from '../types/order.types'
 import { useOrderClients, useOrderSellers, useOrderProducts, useCreateOrder, useUpdateOrder } from '../hooks/useOrders'
+import { cashRegisterService } from '@/features/cash-register/cashRegisterService'
 import styles from './OrderFormDrawer.module.css'
 
 const PAYMENT_METHOD_OPTIONS = [
@@ -58,6 +60,12 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
   const { message } = App.useApp()
   const isEdit = !!order
 
+  const { data: currentCash } = useQuery({
+    queryKey: ['cash-current'],
+    queryFn:  cashRegisterService.getCurrentCash,
+    enabled:  !isEdit,
+  })
+
   const { data: clientsData, isLoading: loadingClients } = useOrderClients()
   const { data: sellersData, isLoading: loadingSellers } = useOrderSellers()
   const { data: productsData, isLoading: loadingProducts } = useOrderProducts()
@@ -103,13 +111,29 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
   }, [order, reset, open, resetFormState])
 
   const items = watch('items')
-  
-  const total = useMemo(() => 
+
+  const total = useMemo(() =>
     items.reduce((acc, i) => acc + (i.quantity ?? 0) * (i.unitPrice ?? 0), 0),
   [items])
 
+
   const products = productsData?.content ?? []
   const allClients = clientsData?.content ?? []
+
+  const stockIssues = useMemo(() => {
+    return items
+      .map((item, index) => {
+        const product = products.find((p: ProductOption) => p.id === item.productId)
+        if (!product || !item.quantity) return null
+        const available = Number(product.stockQuantity)
+        const needed = Number(item.quantity)
+        if (needed > available) {
+          return { index, name: product.name, available, needed }
+        }
+        return null
+      })
+      .filter(Boolean) as { index: number; name: string; available: number; needed: number }[]
+  }, [items, products])
   const allSellers = sellersData?.content ?? []
 
   const filteredClients = useMemo(() => {
@@ -144,6 +168,8 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
   }
 
   const onSubmit = async (values: FormValues) => {
+    if (stockIssues.length > 0) return
+
     try {
       if (isEdit) {
         if (!order?.id) return
@@ -154,8 +180,11 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
         message.success('Pedido criado com sucesso!')
       }
       handleConfirmClose()
-    } catch {
-      message.error('Erro ao salvar o pedido.')
+    } catch (err: unknown) {
+      const apiMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      if (apiMsg) {
+        message.error(apiMsg)
+      }
     }
   }
 
@@ -184,7 +213,13 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
               <Button onClick={handleCloseRequest} disabled={saving}>
                 Cancelar
               </Button>
-              <Button type="primary" loading={saving} onClick={handleSubmit(onSubmit)} className={styles.saveBtn}>
+              <Button
+                type="primary"
+                loading={saving}
+                disabled={(!isEdit && !currentCash) || stockIssues.length > 0}
+                onClick={handleSubmit(onSubmit)}
+                className={styles.saveBtn}
+              >
                 {isEdit ? 'Salvar alterações' : 'Criar pedido'}
               </Button>
             </Space>
@@ -198,6 +233,15 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
         ) : (
           <form noValidate>
             <Form layout="vertical" component={false}>
+              {!isEdit && !currentCash && (
+                <Alert
+                  type="error"
+                  showIcon
+                  message="Caixa fechado"
+                  description="Não é possível criar pedidos sem um caixa aberto."
+                  style={{ marginBottom: 16 }}
+                />
+              )}
               <Form.Item
                 label={<span className={styles.fieldLabel}>Cliente</span>}
                 validateStatus={errors.clientId ? 'error' : ''}
@@ -297,6 +341,24 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
                   />
                 </Form.Item>
               </div>
+
+              {stockIssues.length > 0 && (
+                <Alert
+                  type="error"
+                  showIcon
+                  message="Estoque insuficiente"
+                  description={
+                    <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+                      {stockIssues.map(issue => (
+                        <li key={issue.index}>
+                          <strong>{issue.name}</strong>: solicitado {issue.needed.toLocaleString('pt-BR')}, disponível {issue.available.toLocaleString('pt-BR')}
+                        </li>
+                      ))}
+                    </ul>
+                  }
+                  style={{ marginBottom: 16 }}
+                />
+              )}
 
               <Divider className={styles.divider}>Produtos</Divider>
 

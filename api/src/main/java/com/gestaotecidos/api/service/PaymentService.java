@@ -1,8 +1,6 @@
 package com.gestaotecidos.api.service;
 
-import com.gestaotecidos.api.domain.CashMovement;
 import com.gestaotecidos.api.domain.Payment;
-import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.dto.PaymentDtos;
 import com.gestaotecidos.api.exception.BusinessException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
@@ -37,7 +35,7 @@ public class PaymentService {
 
     @Transactional
     public PaymentDtos.Response create(PaymentDtos.Request data) {
-        var cashRegister = cashRegisterRepository.findOpenRegister()
+        cashRegisterRepository.findOpenRegister()
                 .orElseThrow(() -> new BusinessException(
                         "Não há caixa aberto. Abra o caixa antes de registrar pagamentos."));
 
@@ -70,18 +68,40 @@ public class PaymentService {
             installmentService.settleEarliestPending(order.getId(), savedPayment);
         }
 
-        var movement = new CashMovement();
-        movement.setCashRegister(cashRegister);
-        movement.setType(CashMovementType.RECEBIMENTO);
-        movement.setAmount(data.amount());
-        movement.setDescription("Recebimento - Pedido #" + order.getId() +
-                " - " + data.paymentMethod().name());
-        movement.setOrder(order);
-        movement.setPayment(savedPayment);
-        cashRegister.getMovements().add(movement);
-        cashRegisterRepository.save(cashRegister);
+        // Calcula totalPaid sem nova query JPQL para evitar auto-flush duplo do Envers
+        BigDecimal totalPaid = alreadyPaid.add(data.amount());
+        BigDecimal pending = order.getTotalAmount().subtract(totalPaid);
 
-        return mapToResponse(savedPayment);
+        String paymentStatus;
+        if (pending.compareTo(BigDecimal.ZERO) <= 0) {
+            paymentStatus = "PAGO";
+        } else if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
+            paymentStatus = "PARCIAL";
+        } else {
+            paymentStatus = "PENDENTE";
+        }
+
+        var client = order.getClient();
+        return new PaymentDtos.Response(
+                savedPayment.getId(),
+                savedPayment.getPaymentMethod(),
+                savedPayment.getAmount(),
+                savedPayment.getPaidAt(),
+                savedPayment.getTransactionCode(),
+                savedPayment.getObservation(),
+                savedPayment.getCreatedAt(),
+                order.getId(),
+                order.getStatus().name(),
+                client.getId(),
+                client.getName(),
+                client.getDocument(),
+                client.getEmail(),
+                client.getPhone(),
+                order.getTotalAmount(),
+                totalPaid,
+                pending,
+                paymentStatus
+        );
     }
 
     public List<PaymentDtos.Response> findByOrder(Long orderId) {

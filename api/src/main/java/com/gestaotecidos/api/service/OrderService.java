@@ -1,16 +1,22 @@
 package com.gestaotecidos.api.service;
 
+import com.gestaotecidos.api.domain.CashMovement;
 import com.gestaotecidos.api.domain.Order;
 import com.gestaotecidos.api.domain.OrderItem;
+import com.gestaotecidos.api.domain.StockMovement;
+import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.domain.Enums.OrderStatus;
 import com.gestaotecidos.api.domain.Enums.PersonRole;
+import com.gestaotecidos.api.domain.Enums.StockMovementType;
 import com.gestaotecidos.api.dto.OrderDtos;
 import com.gestaotecidos.api.exception.BusinessException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
+import com.gestaotecidos.api.repository.CashMovementRepository;
 import com.gestaotecidos.api.repository.CashRegisterRepository;
 import com.gestaotecidos.api.repository.OrderRepository;
 import com.gestaotecidos.api.repository.PersonRepository;
 import com.gestaotecidos.api.repository.ProductRepository;
+import com.gestaotecidos.api.repository.StockMovementRepository;
 import com.gestaotecidos.api.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,23 +36,34 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final FinancialInstallmentService installmentService;
     private final CashRegisterRepository cashRegisterRepository;
+    private final CashMovementRepository cashMovementRepository;
+    private final StockMovementRepository stockMovementRepository;
 
     public OrderService(OrderRepository orderRepository,
                         PersonRepository personRepository,
                         UserRepository userRepository,
                         ProductRepository productRepository,
                         FinancialInstallmentService installmentService,
-                        CashRegisterRepository cashRegisterRepository) {
+                        CashRegisterRepository cashRegisterRepository,
+                        CashMovementRepository cashMovementRepository,
+                        StockMovementRepository stockMovementRepository) {
         this.orderRepository = orderRepository;
         this.personRepository = personRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.installmentService = installmentService;
         this.cashRegisterRepository = cashRegisterRepository;
+        this.cashMovementRepository = cashMovementRepository;
+        this.stockMovementRepository = stockMovementRepository;
     }
 
     @Transactional
     public OrderDtos.Response create(OrderDtos.Request data) {
+        cashRegisterRepository.findOpenRegister().orElseThrow(() ->
+                new BusinessException("Não há caixa aberto. Abra o caixa antes de registrar pedidos."));
+
+        validateStockAvailability(data);
+
         var order = new Order();
         order.setStatus(OrderStatus.DIGITACAO);
         populateOrderFields(order, data);
@@ -60,6 +77,8 @@ public class OrderService {
         if (order.getStatus() != OrderStatus.DIGITACAO) {
             throw new BusinessException("Somente pedidos em DIGITAÇÃO podem ser editados.");
         }
+
+        validateStockAvailability(data);
 
         order.getItems().clear();
         populateOrderFields(order, data);
@@ -98,7 +117,7 @@ public class OrderService {
             throw new BusinessException("Somente pedidos APROVADOS podem ser faturados.");
         }
 
-        cashRegisterRepository.findOpenRegister().orElseThrow(() ->
+        var cashRegister = cashRegisterRepository.findOpenRegister().orElseThrow(() ->
                 new BusinessException("Não há caixa aberto. Abra o caixa antes de faturar o pedido."));
 
         if (req != null && req.paymentMethod() != null) {
@@ -132,8 +151,30 @@ public class OrderService {
         order.setStatus(OrderStatus.FATURADO);
         var saved = orderRepository.save(order);
 
+        // Registra baixas de estoque por item
+        saved.getItems().forEach(item -> {
+            var sm = new StockMovement(
+                    item.getProduct(),
+                    StockMovementType.SAIDA,
+                    item.getQuantity(),
+                    "Venda - Pedido #" + saved.getId()
+            );
+            sm.setReferenceId(saved.getId());
+            sm.setReferenceType("PEDIDO");
+            stockMovementRepository.save(sm);
+        });
+
         // Gera parcelas financeiras automaticamente
         installmentService.generateForOrder(saved);
+
+        // Registra movimentação de recebimento no caixa (atômico com o faturamento)
+        var movement = new CashMovement();
+        movement.setCashRegister(cashRegister);
+        movement.setType(CashMovementType.RECEBIMENTO);
+        movement.setAmount(saved.getTotalAmount());
+        movement.setDescription("Venda faturada - Pedido #" + saved.getId());
+        movement.setOrder(saved);
+        cashMovementRepository.save(movement);
 
         return mapToResponse(saved);
     }
@@ -158,6 +199,26 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.CANCELADO);
+        return mapToResponse(orderRepository.save(order));
+    }
+
+    @Transactional
+    public OrderDtos.Response ship(Long id) {
+        var order = findEntityById(id);
+        if (order.getStatus() != OrderStatus.FATURADO) {
+            throw new BusinessException("Somente pedidos FATURADOS podem ser enviados ao cliente.");
+        }
+        order.setStatus(OrderStatus.ENVIADO);
+        return mapToResponse(orderRepository.save(order));
+    }
+
+    @Transactional
+    public OrderDtos.Response deliver(Long id) {
+        var order = findEntityById(id);
+        if (order.getStatus() != OrderStatus.ENVIADO) {
+            throw new BusinessException("Somente pedidos ENVIADOS podem ser marcados como entregues.");
+        }
+        order.setStatus(OrderStatus.ENTREGUE);
         return mapToResponse(orderRepository.save(order));
     }
 
@@ -219,6 +280,22 @@ public class OrderService {
 
             order.addItem(new OrderItem(product, itemDto.quantity(), itemDto.unitPrice()));
         });
+    }
+
+    private void validateStockAvailability(OrderDtos.Request data) {
+        var issues = new java.util.ArrayList<String>();
+        data.items().forEach(itemDto -> {
+            productRepository.findByIdAndActiveTrue(itemDto.productId()).ifPresent(product -> {
+                if (product.getStockQuantity().compareTo(itemDto.quantity()) < 0) {
+                    issues.add("'" + product.getName() + "': disponível " +
+                            product.getStockQuantity().toPlainString() +
+                            ", solicitado " + itemDto.quantity().toPlainString());
+                }
+            });
+        });
+        if (!issues.isEmpty()) {
+            throw new BusinessException("Estoque insuficiente para: " + String.join("; ", issues));
+        }
     }
 
     private void revertStock(Order order) {
