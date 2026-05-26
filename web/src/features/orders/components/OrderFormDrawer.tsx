@@ -82,7 +82,7 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
     defaultValues: INITIAL_FORM_STATE,
   })
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'items' })
+  const { fields, append, prepend, remove } = useFieldArray({ control, name: 'items' })
 
   const resetFormState = useCallback(() => {
     reset(INITIAL_FORM_STATE)
@@ -134,7 +134,7 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
       })
       .filter(Boolean) as { index: number; name: string; available: number; needed: number }[]
   }, [items, products])
-  const allSellers = sellersData?.content ?? []
+  const allSellers = (sellersData?.content ?? []).filter(s => s.active !== false)
 
   const filteredClients = useMemo(() => {
     if (!clientSearch) return allClients
@@ -304,43 +304,43 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
                 />
               </Form.Item>
 
-              <div style={{ display: 'flex', gap: 12 }}>
-                <Form.Item
-                  label={<span className={styles.fieldLabel}>Forma de Pagamento</span>}
-                  style={{ flex: 1 }}
-                >
-                  <Controller
-                    name="paymentMethod"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        placeholder="Selecione (obrigatório para faturar)"
-                        options={PAYMENT_METHOD_OPTIONS}
-                        allowClear
-                        size="large"
-                      />
-                    )}
-                  />
-                </Form.Item>
+              <Form.Item
+                label={<span className={styles.fieldLabel}>Forma de Pagamento</span>}
+              >
+                <Controller
+                  name="paymentMethod"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      placeholder="Selecione (obrigatório para faturar)"
+                      options={PAYMENT_METHOD_OPTIONS}
+                      allowClear
+                      size="large"
+                    />
+                  )}
+                />
+              </Form.Item>
 
-                <Form.Item
-                  label={<span className={styles.fieldLabel}>Condição de Pagamento</span>}
-                  style={{ flex: 1 }}
-                >
-                  <Controller
-                    name="paymentCondition"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        placeholder="Ex: 30/60/90"
-                        size="large"
-                      />
-                    )}
-                  />
-                </Form.Item>
-              </div>
+              <Form.Item
+                label={<span className={styles.fieldLabel}>Condição de Pagamento</span>}
+              >
+                <Controller
+                  name="paymentCondition"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      placeholder="Ex: 30/60/90"
+                      size="large"
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9/]/g, '')
+                        field.onChange(val)
+                      }}
+                    />
+                  )}
+                />
+              </Form.Item>
 
               {stockIssues.length > 0 && (
                 <Alert
@@ -470,7 +470,7 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
                 type="button"
                 className={styles.addItemBtn}
                 onClick={() =>
-                  append({
+                  prepend({
                     productId: undefined as unknown as number,
                     quantity: 1,
                     unitPrice: 0,

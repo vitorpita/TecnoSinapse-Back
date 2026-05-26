@@ -15,6 +15,7 @@ import {
   type ReceiveItemRequest,
 } from '../purchaseOrderService'
 import PurchaseOrderFormDrawer from '../components/PurchaseOrderFormDrawer'
+import { usePermission } from '@/hooks/usePermission'
 import styles from './PurchaseOrdersPage.module.css'
 
 const statusConfig: Record<PurchaseOrderStatus, { label: string; color: string }> = {
@@ -66,6 +67,12 @@ interface ReceiptItemState {
 export default function PurchaseOrdersPage() {
   const { message } = App.useApp()
   const qc = useQueryClient()
+  const { has, isAdmin } = usePermission()
+  const canWrite    = isAdmin || has('purchase:write')
+  const canApprove  = isAdmin || has('purchase:approve')
+  const canReceive  = isAdmin || has('purchase:receive')
+  const canFinalize = isAdmin || has('purchase:finalize')
+  const canCancel   = isAdmin || has('purchase:cancel')
 
   const [page,          setPage]          = useState(0)
   const [search,        setSearch]        = useState('')
@@ -245,15 +252,17 @@ export default function PurchaseOrdersPage() {
             size="large"
           />
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={() => { setSelectedOrder(null); setFormOpen(true) }}
-          className={styles.newBtn}
-        >
-          Nova Ordem
-        </Button>
+        {canWrite && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={() => { setSelectedOrder(null); setFormOpen(true) }}
+            className={styles.newBtn}
+          >
+            Nova Ordem
+          </Button>
+        )}
       </div>
 
       {/* Tabela */}
@@ -313,30 +322,34 @@ export default function PurchaseOrdersPage() {
 
                         {order.status === 'ABERTO' && (
                           <>
-                            <Tooltip title="Editar">
-                              <button className={styles.actionBtn} onClick={() => { setSelectedOrder(order); setFormOpen(true) }}>
-                                <EditOutlined />
-                              </button>
-                            </Tooltip>
-                            <Popconfirm
-                              title="Aprovar pedido"
-                              description="Ao aprovar, o pedido não poderá mais ser editado."
-                              onConfirm={() => approveMutation.mutate(order.id)}
-                              okText="Aprovar"
-                              cancelText="Cancelar"
-                            >
-                              <Tooltip title="Aprovar">
-                                <button className={`${styles.actionBtn} ${styles.actionPrimary}`}
-                                  disabled={approveMutation.isPending && approveMutation.variables === order.id}>
-                                  {approveMutation.isPending && approveMutation.variables === order.id
-                                    ? <LoadingOutlined /> : <CheckCircleOutlined />}
+                            {canWrite && (
+                              <Tooltip title="Editar">
+                                <button className={styles.actionBtn} onClick={() => { setSelectedOrder(order); setFormOpen(true) }}>
+                                  <EditOutlined />
                                 </button>
                               </Tooltip>
-                            </Popconfirm>
+                            )}
+                            {canApprove && (
+                              <Popconfirm
+                                title="Aprovar pedido"
+                                description="Ao aprovar, o pedido não poderá mais ser editado."
+                                onConfirm={() => approveMutation.mutate(order.id)}
+                                okText="Aprovar"
+                                cancelText="Cancelar"
+                              >
+                                <Tooltip title="Aprovar">
+                                  <button className={`${styles.actionBtn} ${styles.actionPrimary}`}
+                                    disabled={approveMutation.isPending && approveMutation.variables === order.id}>
+                                    {approveMutation.isPending && approveMutation.variables === order.id
+                                      ? <LoadingOutlined /> : <CheckCircleOutlined />}
+                                  </button>
+                                </Tooltip>
+                              </Popconfirm>
+                            )}
                           </>
                         )}
 
-                        {order.status === 'APROVADO' && (
+                        {order.status === 'APROVADO' && canReceive && (
                           <Popconfirm
                             title="Enviar para recebimento"
                             description="O pedido será liberado para dar entrada das mercadorias."
@@ -352,7 +365,7 @@ export default function PurchaseOrdersPage() {
                           </Popconfirm>
                         )}
 
-                        {canReceive && (
+                        {canReceive && (order.status === 'AGUARDANDO_RECEBIMENTO' || order.status === 'RECEBIDO_PARCIAL') && (
                           <Tooltip title="Registrar Recebimento">
                             <button
                               className={`${styles.actionBtn} ${styles.actionSuccess}`}
@@ -363,7 +376,7 @@ export default function PurchaseOrdersPage() {
                           </Tooltip>
                         )}
 
-                        {canFinalize && (
+                        {canFinalize && (order.status === 'RECEBIDO_TOTAL' || order.status === 'RECEBIDO_PARCIAL') && (
                           <Popconfirm
                             title="Finalizar pedido"
                             description="O pedido será fechado e a saída de caixa será registrada."
@@ -381,7 +394,7 @@ export default function PurchaseOrdersPage() {
                           </Popconfirm>
                         )}
 
-                        {!isCanceled && !isFinal && (
+                        {canCancel && !isCanceled && !isFinal && (
                           <Popconfirm
                             title="Cancelar ordem"
                             description="Tem certeza que deseja cancelar esta ordem de compra?"

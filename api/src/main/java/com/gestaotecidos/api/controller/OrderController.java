@@ -54,13 +54,13 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/approve")
-    @PreAuthorize("hasAuthority('order:write')")
+    @PreAuthorize("hasAuthority('order:approve')")
     public ResponseEntity<OrderDtos.Response> approve(@PathVariable Long id) {
         return ResponseEntity.ok(service.approve(id));
     }
 
     @PatchMapping("/{id}/faturar")
-    @PreAuthorize("hasAuthority('order:write')")
+    @PreAuthorize("hasAuthority('order:invoice')")
     public ResponseEntity<OrderDtos.Response> faturar(
             @PathVariable Long id,
             @RequestBody(required = false) OrderDtos.FaturarRequest body) {

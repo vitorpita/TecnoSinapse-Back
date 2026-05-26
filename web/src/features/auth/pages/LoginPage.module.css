@@ -90,6 +90,17 @@
   filter: brightness(0) invert(1);
 }
 
+.cardTitle {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #E6F1FB;
+  letter-spacing: -0.5px;
+  margin: 4px 0 0;
+  line-height: 1;
+}
+.cardTitle span { color: #378ADD; }
+
 .cardSubtitle {
   font-family: 'Rajdhani', sans-serif;
   font-size: 10px;

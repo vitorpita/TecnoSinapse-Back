@@ -8,7 +8,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, ArrowLeftRight,
   Truck, Wallet, CreditCard, Users, Tag, UserCog,
   BarChart3, LogOut, ChevronRight, PanelLeftClose, PanelLeftOpen,
-  ShieldCheck, ClipboardList, User, Settings, Info, Camera, Menu, X,
+  ShieldCheck, ClipboardList, User, Info, Camera, Menu, X,
 } from 'lucide-react'
 
 const menuItems = [
@@ -167,7 +167,10 @@ export default function AppLayout() {
           {effectiveCollapsed ? (
             <img src="/Logo.png" alt="TecnoSinapse" className={styles.logoImgCollapsed} />
           ) : (
-            <img src="/Logo.png" alt="TecnoSinapse" className={styles.logoImg} />
+            <div className={styles.logoExpanded}>
+              <img src="/Logo.png" alt="TecnoSinapse" className={styles.logoImgCollapsed} />
+              <span className={styles.logoExpandedText}>Tecno<span>Sinapse</span></span>
+            </div>
           )}
         </div>
 
@@ -276,12 +279,6 @@ export default function AppLayout() {
                   onClick={() => { fileInputRef.current?.click() }}
                 >
                   <Camera size={14} /> Alterar foto
-                </button>
-                <button
-                  className={styles.profileDropdownItem}
-                  onClick={() => { setDropdownOpen(false); navigate('/users') }}
-                >
-                  <Settings size={14} /> Gerenciar usuários
                 </button>
                 <button
                   className={styles.profileDropdownItem}

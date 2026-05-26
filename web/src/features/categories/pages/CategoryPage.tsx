@@ -3,6 +3,7 @@ import { App, Button, Drawer, Form, Input, Modal, Popconfirm, Spin, Tooltip, Emp
 import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { categoryService, type CategoryRecord } from '../categoryService'
+import { usePermission } from '@/hooks/usePermission'
 import styles from './CategoryPage.module.css'
 
 
@@ -11,6 +12,8 @@ const { TextArea } = Input
 export default function CategoryPage() {
   const { message } = App.useApp()
   const qc = useQueryClient()
+  const { has, isAdmin } = usePermission()
+  const canWrite = isAdmin || has('category:write')
 
   const [search,       setSearch]       = useState('')
   const [drawerOpen,   setDrawerOpen]   = useState(false)
@@ -129,15 +132,17 @@ export default function CategoryPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={openNew}
-          className={styles.newBtn}
-        >
-          Nova Categoria
-        </Button>
+        {canWrite && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={openNew}
+            className={styles.newBtn}
+          >
+            Nova Categoria
+          </Button>
+        )}
       </div>
 
       {/* ── Tabela ───────────────────────────────── */}
@@ -177,25 +182,29 @@ export default function CategoryPage() {
                   </td>
                   <td>
                     <div className={styles.actions}>
-                      <Tooltip title="Editar">
-                        <button className={styles.actionBtn} onClick={() => openEdit(cat)}>
-                          <EditOutlined />
-                        </button>
-                      </Tooltip>
-                      <Popconfirm
-                        title="Remover categoria"
-                        description="Produtos vinculados perderão a categoria."
-                        onConfirm={() => deleteMutation.mutate(cat.id)}
-                        okText="Sim, remover"
-                        cancelText="Cancelar"
-                        okButtonProps={{ danger: true }}
-                      >
-                        <Tooltip title="Remover">
-                          <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
-                            <DeleteOutlined />
+                      {canWrite && (
+                        <Tooltip title="Editar">
+                          <button className={styles.actionBtn} onClick={() => openEdit(cat)}>
+                            <EditOutlined />
                           </button>
                         </Tooltip>
-                      </Popconfirm>
+                      )}
+                      {canWrite && (
+                        <Popconfirm
+                          title="Remover categoria"
+                          description="Produtos vinculados perderão a categoria."
+                          onConfirm={() => deleteMutation.mutate(cat.id)}
+                          okText="Sim, remover"
+                          cancelText="Cancelar"
+                          okButtonProps={{ danger: true }}
+                        >
+                          <Tooltip title="Remover">
+                            <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
+                              <DeleteOutlined />
+                            </button>
+                          </Tooltip>
+                        </Popconfirm>
+                      )}
                     </div>
                   </td>
                 </tr>

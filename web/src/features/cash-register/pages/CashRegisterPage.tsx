@@ -12,6 +12,7 @@ import {
   type CashRegisterRecord,
   type CashMovement,
 } from '../cashRegisterService'
+import { usePermission } from '@/hooks/usePermission'
 import styles from './CashRegisterPage.module.css'
 
 const MOVEMENT_TYPES = [
@@ -61,6 +62,8 @@ function formatDate(d?: string) {
 export default function CashRegisterPage() {
   const { message, modal } = App.useApp()
   const qc = useQueryClient()
+  const { has, isAdmin } = usePermission()
+  const canWrite = isAdmin || has('cash:write')
 
   const [page, setPage] = useState(0)
   const [movementDrawer, setMovementDrawer] = useState(false)
@@ -307,7 +310,7 @@ export default function CashRegisterPage() {
             </div>
             <div className={styles.statusCardStatus}>
               <div className={styles.statusBadge}>
-                {!currentCash.closed ? '🟢 ABERTO' : '🔴 FECHADO'}
+                {!currentCash.closed ? 'ABERTO' : 'FECHADO'}
               </div>
               <div className={styles.statusTime}>
                 {formatDate(currentCash.openedAt)}
@@ -321,7 +324,7 @@ export default function CashRegisterPage() {
           showIcon
           message="Caixa Fechado"
           description="Nenhum caixa está aberto. Pagamentos e movimentações estão bloqueados até que um novo caixa seja aberto."
-          action={
+          action={canWrite ? (
             <Button
               type="primary"
               size="large"
@@ -331,7 +334,7 @@ export default function CashRegisterPage() {
             >
               Abrir Caixa
             </Button>
-          }
+          ) : undefined}
           style={{ borderRadius: 10, marginBottom: 0 }}
         />
       )}
@@ -393,15 +396,17 @@ export default function CashRegisterPage() {
             </div>
           </div>
           <div className={styles.actionBtns}>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              size="large"
-              onClick={() => setMovementDrawer(true)}
-              className={styles.actionBtn}
-            >
-              + Movimentação
-            </Button>
+            {canWrite && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="large"
+                onClick={() => setMovementDrawer(true)}
+                className={styles.actionBtn}
+              >
+                + Movimentação
+              </Button>
+            )}
             <Button
               icon={<PrinterOutlined />}
               size="large"
@@ -409,15 +414,17 @@ export default function CashRegisterPage() {
             >
               Imprimir
             </Button>
-            <Button
-              danger
-              icon={<LockOutlined />}
-              size="large"
-              onClick={() => setCloseDrawer(true)}
-              className={styles.actionBtnSecondary}
-            >
-              Fechar Caixa
-            </Button>
+            {canWrite && (
+              <Button
+                danger
+                icon={<LockOutlined />}
+                size="large"
+                onClick={() => setCloseDrawer(true)}
+                className={styles.actionBtnSecondary}
+              >
+                Fechar Caixa
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -479,22 +486,24 @@ export default function CashRegisterPage() {
                       </td>
                       <td>
                         <div className={styles.actions}>
-                          <Popconfirm
-                            title="Excluir movimentação"
-                            description="Deseja realmente excluir esta movimentação?"
-                            onConfirm={() => deleteMovementMutation.mutate({ cashId: currentCash!.id, movementId: movement.id })}
-                            okText="Sim, excluir"
-                            cancelText="Cancelar"
-                            okButtonProps={{ danger: true }}
-                          >
-                            <Tooltip title="Excluir">
-                              <button
-                                className={`${styles.actionIconBtn} ${styles.actionDanger}`}
-                              >
-                                <DeleteOutlined />
-                              </button>
-                            </Tooltip>
-                          </Popconfirm>
+                          {canWrite && (
+                            <Popconfirm
+                              title="Excluir movimentação"
+                              description="Deseja realmente excluir esta movimentação?"
+                              onConfirm={() => deleteMovementMutation.mutate({ cashId: currentCash!.id, movementId: movement.id })}
+                              okText="Sim, excluir"
+                              cancelText="Cancelar"
+                              okButtonProps={{ danger: true }}
+                            >
+                              <Tooltip title="Excluir">
+                                <button
+                                  className={`${styles.actionIconBtn} ${styles.actionDanger}`}
+                                >
+                                  <DeleteOutlined />
+                                </button>
+                              </Tooltip>
+                            </Popconfirm>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -549,7 +558,7 @@ export default function CashRegisterPage() {
                   </td>
                   <td>
                     <Tag color={!cash.closed ? 'blue' : 'green'}>
-                      {!cash.closed ? '🟢 Aberto' : '✓ Fechado'}
+                      {!cash.closed ? 'Aberto' : '✓ Fechado'}
                     </Tag>
                   </td>
                   <td>{cash.openedByName || '—'}</td>

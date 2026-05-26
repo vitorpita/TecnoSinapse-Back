@@ -5,6 +5,7 @@ import { PlusOutlined, SearchOutlined, EyeOutlined,
   SendOutlined, CheckCircleOutlined, FileTextOutlined,
   TruckOutlined, CheckOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { usePermission } from '@/hooks/usePermission'
 import { useOrders, useDeleteOrder, useCancelOrder, useApproveOrder, useAwaitApprovalOrder, useFaturarOrder, useShipOrder, useDeliverOrder } from '../hooks/useOrders'
 import OrderFormDrawer   from '../components/OrderFormDrawer'
 import OrderDetailDrawer from '../components/OrderDetailDrawer'
@@ -26,6 +27,10 @@ const statusFilterOptions = [
 export default function OrdersPage() {
   const { message } = App.useApp()
   const navigate = useNavigate()
+  const { has, isAdmin } = usePermission()
+  const canWrite   = isAdmin || has('order:write')
+  const canApprove = isAdmin || has('order:approve')
+  const canInvoice = isAdmin || has('order:invoice')
   const [page,          setPage]          = useState(0)
   const [search,        setSearch]        = useState('')
   const [statusFilter,  setStatusFilter]  = useState<OrderStatus | ''>('')
@@ -162,15 +167,17 @@ export default function OrdersPage() {
             size="large"
           />
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={handleNew}
-          className={styles.newBtn}
-        >
-          Novo Pedido
-        </Button>
+        {canWrite && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={handleNew}
+            className={styles.newBtn}
+          >
+            Novo Pedido
+          </Button>
+        )}
       </div>
 
       <div className={styles.tableWrap}>
@@ -254,7 +261,7 @@ export default function OrdersPage() {
                             </button>
                           </Tooltip>
 
-                          {order.status === 'DIGITACAO' && (
+                          {order.status === 'DIGITACAO' && canWrite && (
                             <>
                               <Tooltip title="Editar">
                                 <button className={styles.actionBtn} onClick={() => handleEdit(order)}>
@@ -277,7 +284,7 @@ export default function OrdersPage() {
                             </>
                           )}
 
-                          {order.status === 'AGUARDANDO_APROVACAO' && (
+                          {order.status === 'AGUARDANDO_APROVACAO' && canApprove && (
                             <Popconfirm
                               title="Aprovar pedido"
                               description="Confirma a aprovação deste pedido?"
@@ -293,7 +300,7 @@ export default function OrdersPage() {
                             </Popconfirm>
                           )}
 
-                          {order.status === 'APROVADO' && (
+                          {order.status === 'APROVADO' && canInvoice && (
                             <Tooltip title="Faturar">
                               <button
                                 className={`${styles.actionBtn} ${styles.actionPayment}`}
@@ -315,7 +322,7 @@ export default function OrdersPage() {
                             </Tooltip>
                           )}
 
-                          {order.status === 'FATURADO' && (
+                          {order.status === 'FATURADO' && canWrite && (
                             <Popconfirm
                               title="Enviar para cliente"
                               description="Confirma que o pedido foi enviado ao cliente?"
@@ -331,7 +338,7 @@ export default function OrdersPage() {
                             </Popconfirm>
                           )}
 
-                          {order.status === 'ENVIADO' && (
+                          {order.status === 'ENVIADO' && canWrite && (
                             <Popconfirm
                               title="Marcar como entregue"
                               description="Confirma que o pedido foi entregue ao cliente?"
@@ -347,7 +354,7 @@ export default function OrdersPage() {
                             </Popconfirm>
                           )}
 
-                          {!isCanceled && order.status !== 'ENTREGUE' && (
+                          {!isCanceled && order.status !== 'ENTREGUE' && canWrite && (
                             <Popconfirm
                               title="Cancelar pedido"
                               description="Tem certeza que deseja cancelar este pedido?"

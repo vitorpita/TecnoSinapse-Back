@@ -14,7 +14,9 @@ public enum Role {
             Permission.CATEGORY_READ, Permission.CATEGORY_WRITE, Permission.CATEGORY_DELETE,
             Permission.PERSON_READ, Permission.PERSON_WRITE, Permission.PERSON_DELETE,
             Permission.ORDER_READ, Permission.ORDER_WRITE, Permission.ORDER_DELETE,
+            Permission.ORDER_APPROVE, Permission.ORDER_INVOICE,
             Permission.PURCHASE_READ, Permission.PURCHASE_WRITE, Permission.PURCHASE_DELETE,
+            Permission.PURCHASE_APPROVE, Permission.PURCHASE_RECEIVE, Permission.PURCHASE_FINALIZE, Permission.PURCHASE_CANCEL,
             Permission.CASH_READ, Permission.CASH_WRITE,
             Permission.REPORT_READ
     )),
@@ -23,7 +25,9 @@ public enum Role {
             Permission.CATEGORY_READ, Permission.CATEGORY_WRITE,
             Permission.PERSON_READ, Permission.PERSON_WRITE,
             Permission.ORDER_READ, Permission.ORDER_WRITE,
+            Permission.ORDER_APPROVE, Permission.ORDER_INVOICE,
             Permission.PURCHASE_READ, Permission.PURCHASE_WRITE,
+            Permission.PURCHASE_APPROVE, Permission.PURCHASE_RECEIVE, Permission.PURCHASE_FINALIZE, Permission.PURCHASE_CANCEL,
             Permission.CASH_READ, Permission.CASH_WRITE,
             Permission.REPORT_READ
     )),

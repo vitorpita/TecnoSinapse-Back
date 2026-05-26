@@ -4,6 +4,7 @@ import { PlusOutlined, SearchOutlined, EyeOutlined, EditOutlined, DeleteOutlined
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { productService, type ProductRecord } from '../productService'
+import { usePermission } from '@/hooks/usePermission'
 import styles from './ProductsPage.module.css'
 
 function formatCurrency(v: number) {
@@ -14,6 +15,8 @@ export default function ProductsPage() {
   const { message } = App.useApp()
   const qc = useQueryClient()
   const navigate = useNavigate()
+  const { has, isAdmin } = usePermission()
+  const canWrite = isAdmin || has('product:write')
 
   const [page,    setPage]    = useState(0)
   const [search,  setSearch]  = useState('')
@@ -92,15 +95,17 @@ export default function ProductsPage() {
             >⊞ Grade</button>
           </div>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="large"
-          onClick={() => navigate('/products/new')}
-          className={styles.newBtn}
-        >
-          Novo Produto
-        </Button>
+        {canWrite && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            size="large"
+            onClick={() => navigate('/products/new')}
+            className={styles.newBtn}
+          >
+            Novo Produto
+          </Button>
+        )}
       </div>
 
       {/* ── Conteúdo ─────────────────────────────── */}
@@ -153,20 +158,22 @@ export default function ProductsPage() {
                     Estoque: <strong>{Number(p.stockQuantity).toLocaleString('pt-BR')}</strong>
                   </div>
                 </div>
-                <div className={styles.productCardActions}>
-                  <button className={styles.cardActionBtn} onClick={() => navigate(`/products/${p.id}`)}>
-                    <EditOutlined /> Editar
-                  </button>
-                  <Popconfirm
-                    title="Inativar produto?"
-                    onConfirm={() => deleteMutation.mutate(p.id)}
-                    okText="Sim" cancelText="Não" okButtonProps={{ danger: true }}
-                  >
-                    <button className={`${styles.cardActionBtn} ${styles.cardActionDanger}`}>
-                      <DeleteOutlined /> Inativar
+                {canWrite && (
+                  <div className={styles.productCardActions}>
+                    <button className={styles.cardActionBtn} onClick={() => navigate(`/products/${p.id}`)}>
+                      <EditOutlined /> Editar
                     </button>
-                  </Popconfirm>
-                </div>
+                    <Popconfirm
+                      title="Inativar produto?"
+                      onConfirm={() => deleteMutation.mutate(p.id)}
+                      okText="Sim" cancelText="Não" okButtonProps={{ danger: true }}
+                    >
+                      <button className={`${styles.cardActionBtn} ${styles.cardActionDanger}`}>
+                        <DeleteOutlined /> Inativar
+                      </button>
+                    </Popconfirm>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -219,23 +226,27 @@ export default function ProductsPage() {
                   <td className={styles.tdCost}>{formatCurrency(Number(p.purchasePrice))}</td>
                   <td>
                     <div className={styles.actions}>
-                      <Tooltip title="Editar">
-                        <button className={styles.actionBtn} onClick={() => navigate(`/products/${p.id}`)}>
-                          <EditOutlined />
-                        </button>
-                      </Tooltip>
-                      <Popconfirm
-                        title="Inativar produto"
-                        description="O produto será inativado no sistema."
-                        onConfirm={() => deleteMutation.mutate(p.id)}
-                        okText="Sim, inativar" cancelText="Cancelar" okButtonProps={{ danger: true }}
-                      >
-                        <Tooltip title="Inativar">
-                          <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
-                            <DeleteOutlined />
+                      {canWrite && (
+                        <Tooltip title="Editar">
+                          <button className={styles.actionBtn} onClick={() => navigate(`/products/${p.id}`)}>
+                            <EditOutlined />
                           </button>
                         </Tooltip>
-                      </Popconfirm>
+                      )}
+                      {canWrite && (
+                        <Popconfirm
+                          title="Inativar produto"
+                          description="O produto será inativado no sistema."
+                          onConfirm={() => deleteMutation.mutate(p.id)}
+                          okText="Sim, inativar" cancelText="Cancelar" okButtonProps={{ danger: true }}
+                        >
+                          <Tooltip title="Inativar">
+                            <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
+                              <DeleteOutlined />
+                            </button>
+                          </Tooltip>
+                        </Popconfirm>
+                      )}
                     </div>
                   </td>
                 </tr>

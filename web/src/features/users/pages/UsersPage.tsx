@@ -4,6 +4,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeInvisibl
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { userService, type UserRecord, type UserRole } from '../userService'
 import { cargoService } from '@/features/cargos/cargoService'
+import { usePermission } from '@/hooks/usePermission'
 import styles from './UsersPage.module.css'
 
 const ROLE_CONFIG: Record<UserRole, { label: string; color: string }> = {
@@ -28,6 +29,8 @@ const roleFilterOptions = [
 export default function UsersPage() {
   const { message } = App.useApp()
   const qc = useQueryClient()
+  const { has, isAdmin } = usePermission()
+  const canWrite = isAdmin || has('user:write')
 
   const [page,         setPage]         = useState(0)
   const [search,       setSearch]       = useState('')
@@ -191,9 +194,11 @@ export default function UsersPage() {
             </span>
           </div>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} size="large" onClick={openNew} className={styles.newBtn}>
-          Novo Usuário
-        </Button>
+        {canWrite && (
+          <Button type="primary" icon={<PlusOutlined />} size="large" onClick={openNew} className={styles.newBtn}>
+            Novo Usuário
+          </Button>
+        )}
       </div>
 
       {/* ── Tabela ───────────────────────────────── */}
@@ -237,14 +242,14 @@ export default function UsersPage() {
                     <td>{user.cargoName ? <Tag color="geekblue">{user.cargoName}</Tag> : <span style={{ color: '#ccc', fontSize: 12 }}>—</span>}</td>
                     <td>
                       <div className={styles.actions}>
-                        {isActive && (
+                        {isActive && canWrite && (
                           <Tooltip title="Editar">
                             <button className={styles.actionBtn} onClick={() => openEdit(user)}>
                               <EditOutlined />
                             </button>
                           </Tooltip>
                         )}
-                        {isActive ? (
+                        {isActive && canWrite ? (
                           <Popconfirm
                             title="Inativar usuário"
                             description="O usuário perderá acesso ao sistema."
@@ -259,7 +264,7 @@ export default function UsersPage() {
                               </button>
                             </Tooltip>
                           </Popconfirm>
-                        ) : (
+                        ) : !isActive && canWrite ? (
                           <Popconfirm
                             title="Reativar usuário"
                             description="O usuário voltará a ter acesso ao sistema."
@@ -273,7 +278,7 @@ export default function UsersPage() {
                               </button>
                             </Tooltip>
                           </Popconfirm>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -348,7 +353,6 @@ export default function UsersPage() {
           </Form.Item>
 
           <div className={styles.roleInfo}>
-            <span className={styles.roleInfoIcon}>ℹ️</span>
             <span>Se um cargo for atribuído, suas permissões substituem as do perfil base.</span>
           </div>
         </Form>

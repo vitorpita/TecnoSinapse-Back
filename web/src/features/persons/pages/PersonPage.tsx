@@ -12,6 +12,7 @@ import { cpf, cnpj } from 'cpf-cnpj-validator'
 import { personService, type CreatePersonRequest, type PersonRecord } from '../personService'
 import { buscarCep } from '@/libs/viacep'
 import { buscarCnpj } from '@/libs/brasilApi'
+import { usePermission } from '@/hooks/usePermission'
 import styles from './PersonPage.module.css'
 
 const PERSON_TYPE_OPTIONS = [
@@ -63,6 +64,8 @@ const maskCep = (value: string) => {
 }
 
 export default function PersonPage() {
+  const { has, isAdmin } = usePermission()
+  const canWrite = isAdmin || has('person:write')
   const [open,           setOpen]           = useState(false)
   const [confirmClose,   setConfirmClose]   = useState(false)
   const [viewingPerson,  setViewingPerson]  = useState<PersonRecord | null>(null)
@@ -324,15 +327,17 @@ export default function PersonPage() {
             <span className={styles.tableCount}>
               {isLoading ? '...' : `${data?.totalElements ?? 0} registros`}
             </span>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={showDrawer}
-              size="large"
-              className={styles.saveBtn}
-            >
-              Cadastrar Pessoa
-            </Button>
+            {canWrite && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={showDrawer}
+                size="large"
+                className={styles.saveBtn}
+              >
+                Cadastrar Pessoa
+              </Button>
+            )}
           </div>
         </div>
 
@@ -381,7 +386,7 @@ export default function PersonPage() {
                           <Eye size={14} />
                         </button>
                       </Tooltip>
-                      {record.active !== false && (
+                      {record.active !== false && canWrite && (
                         <>
                           <Tooltip title="Editar">
                             <button
@@ -407,7 +412,7 @@ export default function PersonPage() {
                           </Popconfirm>
                         </>
                       )}
-                      {record.active === false && (
+                      {record.active === false && canWrite && (
                         <Popconfirm
                           title="Reativar cadastro"
                           description="Deseja reativar este cadastro?"
@@ -475,7 +480,7 @@ export default function PersonPage() {
             >
               {viewingPerson && !isEditing ? 'Fechar' : 'Cancelar'}
             </Button>
-            {viewingPerson && !isEditing && (
+            {viewingPerson && !isEditing && canWrite && (
               <Button
                 type="primary"
                 icon={<Pencil size={14} />}

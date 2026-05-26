@@ -71,6 +71,23 @@
   filter: brightness(0) invert(1);
 }
 
+.logoExpanded {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoExpandedText {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: #E6F1FB;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.logoExpandedText span { color: #378ADD; }
+
 .logoImgCollapsed {
   width: 42px;
   height: auto;

@@ -15,9 +15,29 @@ import {
 } from '../../purchase-orders/purchaseOrderService'
 import styles from './PurchaseOrderFormDrawer.module.css'
 
+const PAYMENT_METHOD_OPTIONS = [
+  { value: 'DINHEIRO',       label: 'Dinheiro'          },
+  { value: 'PIX',            label: 'Pix'               },
+  { value: 'CARTAO_CREDITO', label: 'Cartão de Crédito' },
+  { value: 'CARTAO_DEBITO',  label: 'Cartão de Débito'  },
+  { value: 'BOLETO',         label: 'Boleto'            },
+  { value: 'TRANSFERENCIA',  label: 'Transferência'     },
+  { value: 'CHEQUE',         label: 'Cheque'            },
+]
+
+const PAYMENT_CONDITION_OPTIONS = [
+  { value: 'À vista',   label: 'À vista'   },
+  { value: '30',        label: '30 dias'   },
+  { value: '30/60',     label: '30/60'     },
+  { value: '30/60/90',  label: '30/60/90'  },
+  { value: '45/90',     label: '45/90'     },
+  { value: '60/90/120', label: '60/90/120' },
+]
+
 const schema = z.object({
   supplierId:           z.number({ required_error: 'Selecione o fornecedor' }),
   expectedDeliveryDate: z.string().optional(),
+  paymentMethod:        z.string().optional(),
   paymentCondition:     z.string().min(1, 'Informe a condição de pagamento'),
   freightType:          z.enum(['CIF', 'FOB', 'OUTRO']).optional(),
   freightCost:          z.number().min(0).optional(),
@@ -71,6 +91,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
     defaultValues: {
       supplierId:           undefined,
       expectedDeliveryDate: '',
+      paymentMethod:        undefined,
       paymentCondition:     '',
       freightType:          undefined,
       freightCost:          0,
@@ -87,6 +108,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
       reset({
         supplierId:           order.supplierId,
         expectedDeliveryDate: order.expectedDeliveryDate ?? '',
+        paymentMethod:        (order as { paymentMethod?: string }).paymentMethod ?? undefined,
         paymentCondition:     order.paymentCondition ?? '',
         freightType:          order.freightType ?? undefined,
         freightCost:          0,
@@ -102,6 +124,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
       reset({
         supplierId:           undefined,
         expectedDeliveryDate: '',
+        paymentMethod:        undefined,
         paymentCondition:     '',
         freightType:          undefined,
         freightCost:          0,
@@ -224,8 +247,25 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                 />
               </Form.Item>
 
-              {/* Condição de Pagamento + Tipo de Frete */}
+              {/* Forma de Pagamento + Condição de Pagamento */}
               <Row gutter={[16, 0]}>
+                <Col xs={24} sm={12}>
+                  <Form.Item label={<span className={styles.fieldLabel}>Forma de Pagamento</span>}>
+                    <Controller
+                      name="paymentMethod"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          allowClear
+                          placeholder="Selecione"
+                          size="large"
+                          options={PAYMENT_METHOD_OPTIONS}
+                        />
+                      )}
+                    />
+                  </Form.Item>
+                </Col>
                 <Col xs={24} sm={12}>
                   <Form.Item
                     label={<span className={styles.fieldLabel}>Condição de Pagamento</span>}
@@ -237,15 +277,26 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                       name="paymentCondition"
                       control={control}
                       render={({ field }) => (
-                        <Input
+                        <Select
                           {...field}
-                          placeholder="Ex: 30/60/90, À vista, 45 dias..."
+                          showSearch
+                          allowClear
+                          placeholder="Selecione ou digite..."
                           size="large"
+                          options={PAYMENT_CONDITION_OPTIONS}
+                          onSearch={() => {}}
+                          filterOption={false}
+                          onInputKeyDown={() => {}}
+                          onChange={(val) => field.onChange(val ?? '')}
                         />
                       )}
                     />
                   </Form.Item>
                 </Col>
+              </Row>
+
+              {/* Tipo de Frete */}
+              <Row gutter={[16, 0]}>
                 <Col xs={24} sm={12}>
                   <Form.Item label={<span className={styles.fieldLabel}>Tipo de Frete</span>}>
                     <Controller

@@ -10,6 +10,7 @@ interface SellerOption {
   name: string
   login: string
   role: string
+  active?: boolean
 }
 
 export const orderService = {
@@ -89,7 +90,7 @@ export const orderService = {
 
   getSellers: async (): Promise<PageResponse<SellerOption>> => {
     const { data } = await api.get<PageResponse<SellerOption> | SellerOption[]>('/users', {
-      params: { size: PERSONS_SIZE, role: 'VENDEDOR' },
+      params: { size: PERSONS_SIZE, inactive: false },
     })
 
     if (Array.isArray(data)) {
