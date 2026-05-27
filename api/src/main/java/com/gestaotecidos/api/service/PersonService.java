@@ -127,6 +127,7 @@ public class PersonService {
         person.setBairro(data.bairro());
         person.setCidade(data.cidade());
         person.setEstado(data.estado());
+        person.setStateRegistration(data.stateRegistration());
     }
 
     private PersonDtos.Response mapToResponse(Person person) {
@@ -143,7 +144,8 @@ public class PersonService {
                 person.getNumero(),
                 person.getBairro(),
                 person.getCidade(),
-                person.getEstado()
+                person.getEstado(),
+                person.getStateRegistration()
         );
     }
 }

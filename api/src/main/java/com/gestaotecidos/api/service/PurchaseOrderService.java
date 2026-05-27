@@ -206,29 +206,29 @@ public class PurchaseOrderService {
     @Transactional
     public PurchaseOrderDtos.Response finalize(Long id) {
         var order = findEntityById(id);
-        if (order.getStatus() != PurchaseOrderStatus.RECEBIDO_TOTAL &&
-            order.getStatus() != PurchaseOrderStatus.RECEBIDO_PARCIAL) {
-            throw new BusinessException("Somente pedidos recebidos (total ou parcial) podem ser finalizados.");
+        if (order.getStatus() != PurchaseOrderStatus.RECEBIDO_TOTAL) {
+            throw new BusinessException("Somente pedidos com recebimento total podem ser finalizados. Registre o recebimento de todos os itens antes de finalizar.");
         }
+
+        var cashRegister = cashRegisterRepository.findOpenRegister()
+                .orElseThrow(() -> new BusinessException("Nenhum caixa aberto. Abra o caixa antes de finalizar o pedido de compra."));
 
         order.setStatus(PurchaseOrderStatus.FINALIZADO);
         var saved = repository.save(order);
 
-        cashRegisterRepository.findOpenRegister().ifPresent(cashRegister -> {
-            BigDecimal receivedAmount = saved.getItems().stream()
-                    .map(i -> i.getReceivedQuantity().subtract(i.getDamagedQuantity()).multiply(i.getUnitCost()))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal receivedAmount = saved.getItems().stream()
+                .map(i -> i.getReceivedQuantity().subtract(i.getDamagedQuantity()).multiply(i.getUnitCost()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            if (receivedAmount.compareTo(BigDecimal.ZERO) > 0) {
-                var movement = new CashMovement();
-                movement.setCashRegister(cashRegister);
-                movement.setType(CashMovementType.SAIDA);
-                movement.setAmount(receivedAmount);
-                movement.setDescription("Pagamento compra - Pedido #" + saved.getId() +
-                        (saved.getInvoiceNumber() != null ? " · NF " + saved.getInvoiceNumber() : ""));
-                cashMovementRepository.save(movement);
-            }
-        });
+        if (receivedAmount.compareTo(BigDecimal.ZERO) > 0) {
+            var movement = new CashMovement();
+            movement.setCashRegister(cashRegister);
+            movement.setType(CashMovementType.SAIDA);
+            movement.setAmount(receivedAmount);
+            movement.setDescription("Pagamento compra - Pedido #" + saved.getId() +
+                    (saved.getInvoiceNumber() != null ? " · NF " + saved.getInvoiceNumber() : ""));
+            cashMovementRepository.save(movement);
+        }
 
         return mapToResponse(saved);
     }

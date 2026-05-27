@@ -644,18 +644,32 @@ export default function ReportsPage() {
                             </tr>
                           ))}
                         </tbody>
-                        {rows.length > 0 && (
-                          <tfoot>
-                            <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
-                              <td colSpan={6} style={{ padding: '10px 16px', fontFamily: "'Exo 2'", fontSize: 12, color: '#042C53' }}>
-                                Total em estoque (preço de venda)
-                              </td>
-                              <td className={styles.tdRight} style={{ padding: '10px 16px', fontFamily: "'Exo 2'", fontSize: 13, color: '#378ADD', fontWeight: 700 }}>
-                                {fmt(stockInventory.data!.reduce((s, r) => s + Number(r.totalValueSale), 0))}
-                              </td>
-                            </tr>
-                          </tfoot>
-                        )}
+                        {rows.length > 0 && (() => {
+                          const totalSale = stockInventory.data!.reduce((s, r) => s + Number(r.totalValueSale), 0)
+                          const totalCost = stockInventory.data!.reduce((s, r) => s + Number(r.stockQuantity) * Number(r.purchasePrice ?? 0), 0)
+                          const totalQty  = stockInventory.data!.reduce((s, r) => s + Number(r.stockQuantity), 0)
+                          return (
+                            <tfoot>
+                              <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
+                                <td colSpan={3} style={{ padding: '10px 16px', fontFamily: "'Exo 2'", fontSize: 12, color: '#042C53' }}>
+                                  Totais
+                                </td>
+                                <td className={styles.tdRight} style={{ padding: '10px 16px', fontFamily: "'Exo 2'", fontSize: 13, color: '#1D9E75', fontWeight: 700 }}>
+                                  {fmtN(totalQty)}
+                                </td>
+                                <td className={styles.tdRight} style={{ padding: '10px 16px', fontFamily: "'Exo 2'", fontSize: 12, color: '#888' }}>
+                                  —
+                                </td>
+                                <td className={styles.tdRight} style={{ padding: '10px 16px', fontFamily: "'Exo 2'", fontSize: 13, color: '#F59E0B', fontWeight: 700 }}>
+                                  {fmt(totalCost)}
+                                </td>
+                                <td className={styles.tdRight} style={{ padding: '10px 16px', fontFamily: "'Exo 2'", fontSize: 13, color: '#378ADD', fontWeight: 700 }}>
+                                  {fmt(totalSale)}
+                                </td>
+                              </tr>
+                            </tfoot>
+                          )
+                        })()}
                       </table>
                       <CountBadge shown={rows.length} total={total} />
                     </>

@@ -28,6 +28,7 @@ interface ProductFormValues {
   stockQuantity: number
   unitPrice: number
   purchasePrice: number
+  _marginPct?: number
   categoryId?: number
   providerId?: number
 }
@@ -78,6 +79,9 @@ export default function ProductFormPage() {
 
   useEffect(() => {
     if (product) {
+      const sale = Number(product.unitPrice)
+      const cost = Number(product.purchasePrice)
+      const marginPct = sale > 0 ? parseFloat(((sale - cost) / sale * 100).toFixed(2)) : 0
       form.setFieldsValue({
         name: product.name,
         sku: product.sku,
@@ -86,8 +90,9 @@ export default function ProductFormPage() {
         weightGsm: product.weightGsm,
         width: product.width,
         stockQuantity: Number(product.stockQuantity),
-        unitPrice: Number(product.unitPrice),
-        purchasePrice: Number(product.purchasePrice),
+        unitPrice: sale,
+        purchasePrice: cost,
+        _marginPct: marginPct,
         categoryId: product.categoryId,
         providerId: product.providerId,
       })
@@ -186,9 +191,16 @@ export default function ProductFormPage() {
   }
 
   const onFinish = (values: ProductFormValues) => {
-    const { sku: _sku, ...rest } = values
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { sku: _sku, _marginPct: _m, ...rest } = values
+    const base: CreateProductRequest = isEdit ? {
+      name: values.name, sku: values.sku, color: values.color,
+      composition: values.composition, weightGsm: values.weightGsm, width: values.width,
+      stockQuantity: values.stockQuantity, unitPrice: values.unitPrice,
+      purchasePrice: values.purchasePrice, categoryId: values.categoryId, providerId: values.providerId,
+    } : rest
     const payload: CreateProductRequest = {
-      ...(isEdit ? values : rest),
+      ...base,
       imgUrl: imgUrl || undefined,
     }
 
@@ -321,18 +333,101 @@ export default function ProductFormPage() {
               <div className={styles.sectionTitle}>Preços e Estoque</div>
               <Row gutter={16}>
                 <Col span={8}>
-                  <Form.Item name="unitPrice" label={fieldLabel('Preço de Venda (R$)')} rules={[{ required: true, message: 'Informe o preço de venda' }]}>
-                    <MoneyInput style={{ width: '100%' }} size="large" placeholder="0,00" />
+                  <Form.Item name="purchasePrice" label={fieldLabel('Preço de Custo (R$)')} rules={[{ required: true, message: 'Informe o preço de custo' }]}>
+                    <MoneyInput
+                      style={{ width: '100%' }}
+                      size="large"
+                      placeholder="0,00"
+                      onChange={(val) => {
+                        const cost = Number(val) || 0
+                        const margin = form.getFieldValue('_marginPct') ?? 0
+                        if (margin > 0 && margin < 100 && cost > 0) {
+                          form.setFieldValue('unitPrice', parseFloat((cost / (1 - margin / 100)).toFixed(2)))
+                        } else {
+                          const sale = form.getFieldValue('unitPrice') ?? 0
+                          if (sale > 0) {
+                            form.setFieldValue('_marginPct', parseFloat(((sale - cost) / sale * 100).toFixed(2)))
+                          }
+                        }
+                      }}
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={8}>
-                  <Form.Item name="purchasePrice" label={fieldLabel('Preço de Custo (R$)')} rules={[{ required: true, message: 'Informe o preço de custo' }]}>
-                    <MoneyInput style={{ width: '100%' }} size="large" placeholder="0,00" />
+                  <Form.Item
+                    name="_marginPct"
+                    label={fieldLabel('Margem de Lucro (%)')}
+                    extra={<span style={{ fontSize: 11, color: '#888' }}>Preencha para calcular a venda automaticamente</span>}
+                  >
+                    <InputNumber<number>
+                      min={0}
+                      max={99.99}
+                      step={0.5}
+                      precision={2}
+                      style={{ width: '100%' }}
+                      size="large"
+                      placeholder="Ex: 30"
+                      suffix="%"
+                      onChange={(val) => {
+                        const margin = val != null ? Number(val) : null
+                        const cost = form.getFieldValue('purchasePrice') ?? 0
+                        if (margin != null && margin > 0 && margin < 100 && cost > 0) {
+                          form.setFieldValue('unitPrice', parseFloat((cost / (1 - margin / 100)).toFixed(2)))
+                        }
+                        if (margin == null || margin === 0) {
+                          form.setFieldValue('unitPrice', undefined)
+                        }
+                      }}
+                    />
                   </Form.Item>
                 </Col>
+                <Col span={8}>
+                  <Form.Item
+                    noStyle
+                    shouldUpdate={(prev, curr) => prev._marginPct !== curr._marginPct}
+                  >
+                    {({ getFieldValue }) => {
+                      const hasMargin = (getFieldValue('_marginPct') ?? 0) > 0
+                      return (
+                        <Form.Item
+                          name="unitPrice"
+                          label={fieldLabel('Preço de Venda (R$)')}
+                          rules={[{ required: true, message: 'Informe o preço de venda' }]}
+                          extra={hasMargin
+                            ? <span style={{ fontSize: 11, color: '#1D9E75' }}>Calculado pela margem — limpe a margem para editar</span>
+                            : <span style={{ fontSize: 11, color: '#888' }}>Digite o valor diretamente</span>
+                          }
+                        >
+                          <MoneyInput
+                            style={{ width: '100%' }}
+                            size="large"
+                            placeholder="0,00"
+                            disabled={hasMargin}
+                            onChange={(val) => {
+                              const sale = Number(val) || 0
+                              const cost = form.getFieldValue('purchasePrice') ?? 0
+                              if (sale > 0 && cost >= 0) {
+                                form.setFieldValue('_marginPct', parseFloat(((sale - cost) / sale * 100).toFixed(2)))
+                              }
+                            }}
+                          />
+                        </Form.Item>
+                      )
+                    }}
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
                 <Col span={8}>
                   <Form.Item name="stockQuantity" label={fieldLabel('Estoque (metros/unidades)')} rules={[{ required: true, message: 'Informe o estoque' }]}>
-                    <InputNumber min={0} step={0.5} precision={2} style={{ width: '100%' }} size="large" placeholder="0" />
+                    <InputNumber<number>
+                      min={0} step={0.5} precision={2}
+                      decimalSeparator=","
+                      formatter={(v) => String(v ?? '').replace('.', ',')}
+                      parser={(v) => parseFloat((v ?? '').replace(/\./g, '').replace(',', '.')) || 0}
+                      style={{ width: '100%' }} size="large" placeholder="0"
+                    />
                   </Form.Item>
                 </Col>
               </Row>
@@ -341,7 +436,7 @@ export default function ProductFormPage() {
                 {({ getFieldValue }) => {
                   const sale = getFieldValue('unitPrice') ?? 0
                   const cost = getFieldValue('purchasePrice') ?? 0
-                  const margin = cost > 0 ? ((sale - cost) / cost * 100) : 0
+                  const marginOnSale = sale > 0 ? ((sale - cost) / sale * 100) : 0
                   const profit = sale - cost
                   return (
                     <div className={styles.marginBar}>
@@ -352,9 +447,9 @@ export default function ProductFormPage() {
                         </span>
                       </div>
                       <div className={styles.marginItem}>
-                        <span className={styles.marginLabel}>Margem sobre custo</span>
-                        <span className={`${styles.marginValue} ${margin >= 0 ? styles.positive : styles.negative}`}>
-                          {margin.toFixed(1)}%
+                        <span className={styles.marginLabel}>Margem sobre venda</span>
+                        <span className={`${styles.marginValue} ${marginOnSale >= 0 ? styles.positive : styles.negative}`}>
+                          {marginOnSale.toFixed(1)}%
                         </span>
                       </div>
                     </div>

@@ -33,7 +33,10 @@ public interface PersonDtos {
             String cidade,
 
             @Size(max = 2, message = "UF deve ter 2 letras.")
-            String estado
+            String estado,
+
+            @Size(max = 20, message = "IE deve ter no máximo 20 caracteres.")
+            String stateRegistration
     ) {}
 
     record Response(
@@ -49,6 +52,7 @@ public interface PersonDtos {
             String numero,
             String bairro,
             String cidade,
-            String estado
+            String estado,
+            String stateRegistration
     ) {}
 }

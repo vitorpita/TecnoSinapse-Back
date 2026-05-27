@@ -28,6 +28,9 @@ public class Person extends BaseDomain {
     @Column(length = 2)
     private String estado;
 
+    @Column(length = 20)
+    private String stateRegistration;
+
     @ElementCollection(targetClass = PersonRole.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "person_roles", joinColumns = @JoinColumn(name = "person_id"))
     @Enumerated(EnumType.STRING)
@@ -56,6 +59,8 @@ public class Person extends BaseDomain {
     public void setCidade(String cidade) { this.cidade = cidade; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+    public String getStateRegistration() { return stateRegistration; }
+    public void setStateRegistration(String stateRegistration) { this.stateRegistration = stateRegistration; }
     public Set<PersonRole> getRoles() { return roles; }
     public void setRoles(Set<PersonRole> roles) { this.roles = roles; }
 }

@@ -434,6 +434,9 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                               min={0.01}
                               step={0.5}
                               precision={2}
+                              decimalSeparator=","
+                              formatter={(v) => String(v ?? '').replace('.', ',')}
+                              parser={(v) => parseFloat((v ?? '').replace(/\./g, '').replace(',', '.')) || 0}
                               style={{ width: '100%' }}
                               size="large"
                             />

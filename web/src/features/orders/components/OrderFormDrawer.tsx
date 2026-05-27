@@ -82,7 +82,7 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
     defaultValues: INITIAL_FORM_STATE,
   })
 
-  const { fields, append, prepend, remove } = useFieldArray({ control, name: 'items' })
+  const { fields, append, prepend, remove, insert } = useFieldArray({ control, name: 'items' })
 
   const resetFormState = useCallback(() => {
     reset(INITIAL_FORM_STATE)
@@ -368,11 +368,21 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
                   <div key={field.id} className={styles.itemRow}>
                     <div className={styles.itemHeader}>
                       <span className={styles.itemIndex}>Item {index + 1}</span>
-                      {fields.length > 1 && (
-                        <button type="button" className={styles.removeBtn} onClick={() => remove(index)}>
-                          <DeleteOutlined />
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          type="button"
+                          className={styles.addInlineBtn}
+                          onClick={() => insert(index + 1, { productId: undefined as unknown as number, quantity: 1, unitPrice: 0 })}
+                          title="Adicionar produto abaixo"
+                        >
+                          <PlusOutlined />
                         </button>
-                      )}
+                        {fields.length > 1 && (
+                          <button type="button" className={styles.removeBtn} onClick={() => remove(index)}>
+                            <DeleteOutlined />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <Form.Item
@@ -425,6 +435,9 @@ export default function OrderFormDrawer({ open, order, onClose }: Props) {
                               min={0.01}
                               step={0.5}
                               precision={2}
+                              decimalSeparator=","
+                              formatter={(v) => String(v ?? '').replace('.', ',')}
+                              parser={(v) => parseFloat((v ?? '').replace(/\./g, '').replace(',', '.')) || 0}
                               style={{ width: '100%' }}
                               size="large"
                             />

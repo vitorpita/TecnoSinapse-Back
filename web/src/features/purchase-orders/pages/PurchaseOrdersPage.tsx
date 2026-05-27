@@ -296,11 +296,11 @@ export default function PurchaseOrdersPage() {
             </thead>
             <tbody>
               {filtered.map((order: PurchaseOrderRecord) => {
-                const status       = statusConfig[order.status]
-                const isCanceled   = order.status === 'CANCELADO'
-                const isFinal      = order.status === 'FINALIZADO' || order.status === 'RECEBIDO_TOTAL'
-                const canReceive   = order.status === 'AGUARDANDO_RECEBIMENTO' || order.status === 'RECEBIDO_PARCIAL'
-                const canFinalize  = order.status === 'RECEBIDO_TOTAL' || order.status === 'RECEBIDO_PARCIAL'
+                const status              = statusConfig[order.status]
+                const isCanceled          = order.status === 'CANCELADO'
+                const isFinal             = order.status === 'FINALIZADO' || order.status === 'RECEBIDO_TOTAL'
+                const orderCanBeReceived  = order.status === 'AGUARDANDO_RECEBIMENTO' || order.status === 'RECEBIDO_PARCIAL'
+                const orderCanBeFinalized = order.status === 'RECEBIDO_TOTAL'
                 return (
                   <tr key={order.id} className={isCanceled ? styles.rowCanceled : ''}>
                     <td className={styles.tdId}>#{order.id}</td>
@@ -365,7 +365,7 @@ export default function PurchaseOrdersPage() {
                           </Popconfirm>
                         )}
 
-                        {canReceive && (order.status === 'AGUARDANDO_RECEBIMENTO' || order.status === 'RECEBIDO_PARCIAL') && (
+                        {canReceive && orderCanBeReceived && (
                           <Tooltip title="Registrar Recebimento">
                             <button
                               className={`${styles.actionBtn} ${styles.actionSuccess}`}
@@ -376,10 +376,10 @@ export default function PurchaseOrdersPage() {
                           </Tooltip>
                         )}
 
-                        {canFinalize && (order.status === 'RECEBIDO_TOTAL' || order.status === 'RECEBIDO_PARCIAL') && (
+                        {canFinalize && orderCanBeFinalized && (
                           <Popconfirm
                             title="Finalizar pedido"
-                            description="O pedido será fechado e a saída de caixa será registrada."
+                            description="Todos os itens foram recebidos. O pedido será fechado e a saída de caixa registrada."
                             onConfirm={() => finalizeMutation.mutate(order.id)}
                             okText="Finalizar"
                             cancelText="Cancelar"
@@ -522,6 +522,9 @@ export default function PurchaseOrdersPage() {
                         max={ri.pendingQty}
                         step={0.5}
                         precision={2}
+                        decimalSeparator=","
+                        formatter={(v) => String(v ?? '').replace('.', ',')}
+                        parser={(v) => parseFloat((v ?? '').replace(/\./g, '').replace(',', '.')) || 0}
                         size="middle"
                         style={{ width: '100%' }}
                         onChange={v => updateReceiptItem(index, 'receivedQty', Number(v ?? 0))}
@@ -535,6 +538,9 @@ export default function PurchaseOrdersPage() {
                         max={ri.receivedQty}
                         step={0.5}
                         precision={2}
+                        decimalSeparator=","
+                        formatter={(v) => String(v ?? '').replace('.', ',')}
+                        parser={(v) => parseFloat((v ?? '').replace(/\./g, '').replace(',', '.')) || 0}
                         size="middle"
                         style={{ width: '100%' }}
                         onChange={v => updateReceiptItem(index, 'damagedQty', Number(v ?? 0))}

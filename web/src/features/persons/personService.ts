@@ -1,33 +1,35 @@
 import { api } from '@/libs/axios' 
 
 export interface CreatePersonRequest {
-  name:        string
-  document?:   string
-  email?:      string
-  phone?:      string
-  roles:       string[]
-  cep?:        string
-  logradouro?: string
-  numero?:     string
-  bairro?:     string
-  cidade?:     string
-  estado?:     string
+  name:               string
+  document?:          string
+  email?:             string
+  phone?:             string
+  roles:              string[]
+  cep?:               string
+  logradouro?:        string
+  numero?:            string
+  bairro?:            string
+  cidade?:            string
+  estado?:            string
+  stateRegistration?: string
 }
 
 export interface PersonRecord {
-  id:         number
-  name:       string
-  document?:  string
-  email?:     string
-  phone?:     string
-  roles?:     string[]
-  cep?:       string
-  logradouro?: string
-  numero?:    string
-  bairro?:    string
-  cidade?:    string
-  estado?:    string
-  active?:    boolean
+  id:                number
+  name:              string
+  document?:         string
+  email?:            string
+  phone?:            string
+  roles?:            string[]
+  cep?:              string
+  logradouro?:       string
+  numero?:           string
+  bairro?:           string
+  cidade?:           string
+  estado?:           string
+  stateRegistration?: string
+  active?:           boolean
 }
 
 export interface PageResponse<T> {

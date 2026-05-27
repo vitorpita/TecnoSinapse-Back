@@ -89,6 +89,22 @@
   font-weight: 600;
 }
 
+.addInlineBtn {
+  background: none;
+  border: 1px solid #cce5ff;
+  border-radius: 4px;
+  color: #378ADD;
+  cursor: pointer;
+  padding: 2px 8px;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.addInlineBtn:hover {
+  background: #e8f3fb;
+  border-color: #378ADD;
+}
+
 .removeBtn {
   background: none;
   border: 1px solid #fee2e2;

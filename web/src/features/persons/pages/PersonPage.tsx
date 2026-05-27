@@ -204,17 +204,18 @@ export default function PersonPage() {
 
   const onFinish = (values: Record<string, unknown>) => {
     const payload: CreatePersonRequest = {
-      name:        values.name as string,
-      document:    (values.document as string)?.replace(/\D/g, ''),
-      email:       values.email as string | undefined,
-      phone:       (values.phone as string)?.replace(/\D/g, '') || undefined,
-      roles:       values.roles as string[],
-      cep:         (values.cep as string)?.replace(/\D/g, '') || undefined,
-      logradouro:  values.logradouro as string | undefined,
-      numero:      values.numero as string | undefined,
-      bairro:      values.bairro as string | undefined,
-      cidade:      values.cidade as string | undefined,
-      estado:      values.estado as string | undefined,
+      name:               values.name as string,
+      document:           (values.document as string)?.replace(/\D/g, ''),
+      email:              values.email as string | undefined,
+      phone:              (values.phone as string)?.replace(/\D/g, '') || undefined,
+      roles:              values.roles as string[],
+      cep:                (values.cep as string)?.replace(/\D/g, '') || undefined,
+      logradouro:         values.logradouro as string | undefined,
+      numero:             values.numero as string | undefined,
+      bairro:             values.bairro as string | undefined,
+      cidade:             values.cidade as string | undefined,
+      estado:             values.estado as string | undefined,
+      stateRegistration:  (values.stateRegistration as string) || undefined,
     }
     if (viewingPerson && isEditing) {
       updateMutation.mutate({ id: viewingPerson.id, payload })
@@ -592,6 +593,22 @@ export default function PersonPage() {
                 </Form.Item>
               </Col>
             </Row>
+
+            <Form.Item
+              name="stateRegistration"
+              label={<span className={styles.fieldLabel}>Inscrição Estadual (IE)</span>}
+              rules={[
+                {
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve()
+                    if (value.length <= 20) return Promise.resolve()
+                    return Promise.reject(new Error('IE deve ter no máximo 20 caracteres'))
+                  },
+                },
+              ]}
+            >
+              <Input placeholder="Ex: 123.456.789.012" size="large" maxLength={20} />
+            </Form.Item>
 
             <div className={styles.sectionDivider}>Endereço</div>
 

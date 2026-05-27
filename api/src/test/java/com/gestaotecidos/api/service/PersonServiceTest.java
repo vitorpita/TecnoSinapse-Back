@@ -47,7 +47,7 @@ class PersonServiceTest {
         validRequest = new PersonDtos.Request(
                 "João Silva", "12345678901", "joao@email.com", null,
                 Set.of(PersonRole.CLIENTE),
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null
         );
     }
 
@@ -72,7 +72,7 @@ class PersonServiceTest {
         var request = new PersonDtos.Request(
                 "João Silva", "123", null, null,
                 Set.of(),
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null
         );
 
         assertThatThrownBy(() -> service.create(request))
@@ -88,7 +88,7 @@ class PersonServiceTest {
         var request = new PersonDtos.Request(
                 "João Silva", "123", null, null,
                 null,
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null
         );
 
         assertThatThrownBy(() -> service.create(request))
@@ -113,7 +113,7 @@ class PersonServiceTest {
         var requestSemDoc = new PersonDtos.Request(
                 "Maria", null, null, null,
                 Set.of(PersonRole.CLIENTE),
-                null, null, null, null, null, null
+                null, null, null, null, null, null, null
         );
         var personSemDoc = new Person();
         personSemDoc.setId(2L);
