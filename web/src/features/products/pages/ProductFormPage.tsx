@@ -81,7 +81,7 @@ export default function ProductFormPage() {
     if (product) {
       const sale = Number(product.unitPrice)
       const cost = Number(product.purchasePrice)
-      const marginPct = sale > 0 ? parseFloat(((sale - cost) / sale * 100).toFixed(2)) : 0
+      const marginPct = cost > 0 ? parseFloat(((sale / cost - 1) * 100).toFixed(2)) : 0
       form.setFieldsValue({
         name: product.name,
         sku: product.sku,
@@ -266,7 +266,7 @@ export default function ProductFormPage() {
 
               <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="categoryId" label={fieldLabel('Categoria')}>
+                  <Form.Item name="categoryId" label={fieldLabel('Categoria')} rules={[{ required: true, message: 'Selecione a categoria' }]}>
                     <Select
                       showSearch
                       optionFilterProp="label"
@@ -290,7 +290,7 @@ export default function ProductFormPage() {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="providerId" label={fieldLabel('Fornecedor')}>
+                  <Form.Item name="providerId" label={fieldLabel('Fornecedor')} rules={[{ required: true, message: 'Selecione o fornecedor' }]}>
                     <Select
                       showSearch
                       optionFilterProp="label"
@@ -341,13 +341,8 @@ export default function ProductFormPage() {
                       onChange={(val) => {
                         const cost = Number(val) || 0
                         const margin = form.getFieldValue('_marginPct') ?? 0
-                        if (margin > 0 && margin < 100 && cost > 0) {
-                          form.setFieldValue('unitPrice', parseFloat((cost / (1 - margin / 100)).toFixed(2)))
-                        } else {
-                          const sale = form.getFieldValue('unitPrice') ?? 0
-                          if (sale > 0) {
-                            form.setFieldValue('_marginPct', parseFloat(((sale - cost) / sale * 100).toFixed(2)))
-                          }
+                        if (margin > 0 && cost > 0) {
+                          form.setFieldValue('unitPrice', parseFloat((cost * (1 + margin / 100)).toFixed(2)))
                         }
                       }}
                     />
@@ -361,9 +356,12 @@ export default function ProductFormPage() {
                   >
                     <InputNumber<number>
                       min={0}
-                      max={99.99}
+                      max={999.99}
                       step={0.5}
                       precision={2}
+                      decimalSeparator=","
+                      formatter={(v) => String(v ?? '').replace('.', ',')}
+                      parser={(v) => parseFloat((v ?? '').replace(',', '.')) || 0}
                       style={{ width: '100%' }}
                       size="large"
                       placeholder="Ex: 30"
@@ -371,11 +369,8 @@ export default function ProductFormPage() {
                       onChange={(val) => {
                         const margin = val != null ? Number(val) : null
                         const cost = form.getFieldValue('purchasePrice') ?? 0
-                        if (margin != null && margin > 0 && margin < 100 && cost > 0) {
-                          form.setFieldValue('unitPrice', parseFloat((cost / (1 - margin / 100)).toFixed(2)))
-                        }
-                        if (margin == null || margin === 0) {
-                          form.setFieldValue('unitPrice', undefined)
+                        if (margin != null && margin > 0 && cost > 0) {
+                          form.setFieldValue('unitPrice', parseFloat((cost * (1 + margin / 100)).toFixed(2)))
                         }
                       }}
                     />
@@ -403,13 +398,6 @@ export default function ProductFormPage() {
                             size="large"
                             placeholder="0,00"
                             disabled={hasMargin}
-                            onChange={(val) => {
-                              const sale = Number(val) || 0
-                              const cost = form.getFieldValue('purchasePrice') ?? 0
-                              if (sale > 0 && cost >= 0) {
-                                form.setFieldValue('_marginPct', parseFloat(((sale - cost) / sale * 100).toFixed(2)))
-                              }
-                            }}
                           />
                         </Form.Item>
                       )
@@ -424,7 +412,11 @@ export default function ProductFormPage() {
                     <InputNumber<number>
                       min={0} step={0.5} precision={2}
                       decimalSeparator=","
-                      formatter={(v) => String(v ?? '').replace('.', ',')}
+                      formatter={(v) => {
+                        const [int, dec] = String(v ?? '').split('.')
+                        const t = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                        return dec !== undefined ? `${t},${dec}` : t
+                      }}
                       parser={(v) => parseFloat((v ?? '').replace(/\./g, '').replace(',', '.')) || 0}
                       style={{ width: '100%' }} size="large" placeholder="0"
                     />

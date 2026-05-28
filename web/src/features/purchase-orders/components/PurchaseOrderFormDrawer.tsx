@@ -435,7 +435,11 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                               step={0.5}
                               precision={2}
                               decimalSeparator=","
-                              formatter={(v) => String(v ?? '').replace('.', ',')}
+                              formatter={(v) => {
+                                const [int, dec] = String(v ?? '').split('.')
+                                const t = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                return dec !== undefined ? `${t},${dec}` : t
+                              }}
                               parser={(v) => parseFloat((v ?? '').replace(/\./g, '').replace(',', '.')) || 0}
                               style={{ width: '100%' }}
                               size="large"

@@ -12,7 +12,8 @@ const moneyFormatter = (value: number | string | undefined): string => {
   const str = String(value)
   const [int, dec] = str.split('.')
   const thousands = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  return dec !== undefined ? `${thousands},${dec}` : thousands
+  const decPart = (dec ?? '').padEnd(2, '0')
+  return `${thousands},${decPart}`
 }
 
 const moneyParser = (value: string | undefined): number => {

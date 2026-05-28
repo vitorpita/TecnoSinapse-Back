@@ -99,6 +99,9 @@ export default function PersonPage() {
     onSuccess: () => {
       message.success('Cadastro realizado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ['persons'] })
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['sellers'] })
+      queryClient.invalidateQueries({ queryKey: ['purchase-suppliers'] })
       forceClose()
     },
     onError: (err: unknown) => {
@@ -118,6 +121,9 @@ export default function PersonPage() {
     onSuccess: () => {
       message.success('Registro atualizado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ['persons'] })
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['sellers'] })
+      queryClient.invalidateQueries({ queryKey: ['purchase-suppliers'] })
       forceClose()
     },
     onError: (err: unknown) => {
