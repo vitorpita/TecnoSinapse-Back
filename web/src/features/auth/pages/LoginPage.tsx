@@ -7,6 +7,7 @@ import { Form, Input, Button, Alert } from 'antd'
 import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons'
 import { useAuthStore, parseJwt } from '@/store/authStore'
 import { authService } from '../authService'
+import { queryClient } from '@/libs/queryClient'
 import styles from './LoginPage.module.css'
 
 const schema = z.object({
@@ -35,6 +36,7 @@ export default function LoginPage() {
       const { token } = await authService.login(values)
       const user = parseJwt(token)
       if (!user) throw new Error('Token inválido')
+      queryClient.clear()
       setAuth(token, user)
       navigate('/', { replace: true })
     } catch (err: unknown) {

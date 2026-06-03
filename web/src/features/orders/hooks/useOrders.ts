@@ -10,7 +10,7 @@ const PRODUCTS_QUERY_KEY = ['products']
 
 export function useOrders(page = 0, search = '') {
   const query = useQuery({
-    queryKey: [ORDERS_QUERY_KEY, page, search],
+    queryKey: [...ORDERS_QUERY_KEY, page, search],
     queryFn: () => orderService.findAll(page, 20, search || undefined),
     staleTime: 0,
     gcTime: 1000 * 60 * 10,

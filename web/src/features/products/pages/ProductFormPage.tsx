@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Form, Input, InputNumber, Select, Spin, Row, Col } from 'antd'
 import { MoneyInput } from '@/components/MoneyInput'
@@ -7,8 +7,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { productService, type CreateProductRequest } from '../productService'
 import styles from './ProductFormPage.module.css'
 
-const CLOUDINARY_CLOUD_NAME = 'ddjgseash'
-const CLOUDINARY_UPLOAD_PRESET = 'tecnosinapse'
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string
 
 interface HttpError extends Error {
   response?: {
@@ -211,8 +211,19 @@ export default function ProductFormPage() {
     }
   }
 
-  const categories = categoriesData?.content ?? []
-  const providers = providersData?.content ?? []
+  const categories = useMemo(() => {
+    const list = categoriesData?.content ?? []
+    if (!product?.categoryId) return list
+    if (list.some(c => c.id === product.categoryId)) return list
+    return [{ id: product.categoryId, name: product.categoryName ?? `Categoria #${product.categoryId}` }, ...list]
+  }, [categoriesData, product])
+
+  const providers = useMemo(() => {
+    const list = providersData?.content ?? []
+    if (!product?.providerId) return list
+    if (list.some(p => p.id === product.providerId)) return list
+    return [{ id: product.providerId, name: product.providerName ?? `Fornecedor #${product.providerId}` }, ...list]
+  }, [providersData, product])
 
   const fieldLabel = (text: string) => <span className={styles.fieldLabel}>{text}</span>
 

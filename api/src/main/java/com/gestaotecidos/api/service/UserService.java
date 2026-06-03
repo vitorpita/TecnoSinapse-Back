@@ -74,6 +74,9 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário", 0L));
         user.setName(data.name());
         if (data.password() != null && !data.password().isBlank()) {
+            if (passwordEncoder.matches(data.password(), user.getPassword())) {
+                throw new com.gestaotecidos.api.exception.BusinessException("A nova senha não pode ser igual à atual.");
+            }
             user.setPassword(passwordEncoder.encode(data.password()));
         }
         var saved = repository.save(user);
@@ -126,6 +129,10 @@ public class UserService {
     @Transactional
     public void delete(Long id) {
         var user = findEntityById(id);
+        String currentLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (user.getLogin().equals(currentLogin)) {
+            throw new com.gestaotecidos.api.exception.BusinessException("Você não pode inativar seu próprio usuário.");
+        }
         user.deactivate();
         repository.save(user);
         auditLogService.log(AuditModule.USERS, AuditAction.DEACTIVATE, user.getId(), user.getName(),

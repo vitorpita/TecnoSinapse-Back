@@ -237,8 +237,9 @@ public class PurchaseOrderService {
     public PurchaseOrderDtos.Response cancel(Long id) {
         var order = findEntityById(id);
         if (order.getStatus() == PurchaseOrderStatus.RECEBIDO_TOTAL ||
+            order.getStatus() == PurchaseOrderStatus.RECEBIDO_PARCIAL ||
             order.getStatus() == PurchaseOrderStatus.FINALIZADO) {
-            throw new BusinessException("Não é possível cancelar um pedido já recebido ou finalizado.");
+            throw new BusinessException("Não é possível cancelar um pedido com mercadorias já recebidas.");
         }
         if (order.getStatus() == PurchaseOrderStatus.CANCELADO) {
             throw new BusinessException("Este pedido já foi cancelado.");

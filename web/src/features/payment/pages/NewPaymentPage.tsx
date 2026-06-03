@@ -276,7 +276,11 @@ export default function NewPaymentPage() {
                 <Form.Item
                   name="dueDate"
                   label={fieldLabel('Data de Vencimento')}
-                  initialValue={addDays(30)}
+                  initialValue={
+                    pre.paymentCondition && pre.paymentCondition !== '0'
+                      ? addDays(parseInt(pre.paymentCondition.split('/')[0]) || 0)
+                      : addDays(0)
+                  }
                   getValueFromEvent={(e: React.ChangeEvent<HTMLInputElement>) => e.target.value}
                 >
                   <input type="date" className={styles.dateInput} />

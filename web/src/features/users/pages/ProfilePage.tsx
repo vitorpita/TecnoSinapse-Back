@@ -37,7 +37,7 @@ export default function ProfilePage() {
     onSuccess: (updated) => {
       message.success('Perfil atualizado com sucesso!')
       qc.invalidateQueries({ queryKey: ['users', 'me'] })
-      form.setFieldValue('password', '')
+      form.setFieldsValue({ password: '', confirmPassword: '' })
       if (token) {
         const parsed = parseJwt(token)
         if (parsed) {
@@ -51,8 +51,8 @@ export default function ProfilePage() {
     },
   })
 
-  const onFinish = (values: { name: string; password?: string }) => {
-    mutation.mutate(values)
+  const onFinish = (values: { name: string; password?: string; confirmPassword?: string }) => {
+    mutation.mutate({ name: values.name, password: values.password })
   }
 
   if (isLoading) {
@@ -99,6 +99,33 @@ export default function ProfilePage() {
           >
             <Input.Password
               placeholder="Deixe em branco para não alterar"
+              size="large"
+              autoComplete="new-password"
+              iconRender={(v) => v
+                ? <EyeTwoTone twoToneColor="#378ADD" />
+                : <EyeInvisibleOutlined style={{ color: '#85B7EB' }} />
+              }
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmPassword"
+            label={<span className={styles.fieldLabel}>Confirmar nova senha</span>}
+            dependencies={['password']}
+            rules={[
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const pwd = getFieldValue('password')
+                  if (!pwd && !value) return Promise.resolve()
+                  if (pwd && !value) return Promise.reject(new Error('Confirme a nova senha'))
+                  if (value !== pwd) return Promise.reject(new Error('As senhas não coincidem'))
+                  return Promise.resolve()
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              placeholder="Repita a nova senha"
               size="large"
               autoComplete="new-password"
               iconRender={(v) => v

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { Tooltip, Modal } from 'antd'
 import { useAuthStore } from '@/store/authStore'
+import { queryClient } from '@/libs/queryClient'
 import { usePermission } from '@/hooks/usePermission'
 import styles from './AppLayout.module.css'
 import {
@@ -126,6 +127,7 @@ export default function AppLayout() {
   }
 
   const handleLogout = () => {
+    queryClient.clear()
     clearAuth()
     navigate('/login', { replace: true })
   }

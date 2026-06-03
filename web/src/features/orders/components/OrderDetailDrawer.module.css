@@ -65,6 +65,9 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  flex: 1;
+  min-width: 0;
+  margin-right: 12px;
 }
 
 .itemName {
@@ -72,13 +75,8 @@
   font-size: 13px;
   font-weight: 700;
   color: #042C53;
-}
-
-.itemQty {
-  font-family: 'Exo 2', sans-serif;
-  font-size: 11px;
-  font-weight: 300;
-  color: #888;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .itemSubtotal {
@@ -86,6 +84,15 @@
   font-size: 14px;
   font-weight: 700;
   color: #042C53;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.itemQty {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: #888;
 }
 
 .totalRow {

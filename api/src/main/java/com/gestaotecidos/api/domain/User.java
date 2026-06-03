@@ -79,6 +79,9 @@ public class User extends BaseDomain implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (role == Role.ADMIN) {
+            return role.getAuthorities();
+        }
         if (cargo != null) {
             var authorities = cargo.getPermissions().stream()
                     .map(p -> new SimpleGrantedAuthority(p.getPermission()))

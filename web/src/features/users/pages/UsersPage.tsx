@@ -30,7 +30,8 @@ export default function UsersPage() {
   const { message } = App.useApp()
   const qc = useQueryClient()
   const { has, isAdmin } = usePermission()
-  const canWrite = isAdmin || has('user:write')
+  const canWrite  = isAdmin || has('user:write')
+  const canDelete = isAdmin || has('user:delete')
 
   const [page,         setPage]         = useState(0)
   const [search,       setSearch]       = useState('')
@@ -249,7 +250,7 @@ export default function UsersPage() {
                             </button>
                           </Tooltip>
                         )}
-                        {isActive && canWrite ? (
+                        {isActive && canDelete ? (
                           <Popconfirm
                             title="Inativar usuário"
                             description="O usuário perderá acesso ao sistema."
@@ -264,7 +265,7 @@ export default function UsersPage() {
                               </button>
                             </Tooltip>
                           </Popconfirm>
-                        ) : !isActive && canWrite ? (
+                        ) : !isActive && canDelete ? (
                           <Popconfirm
                             title="Reativar usuário"
                             description="O usuário voltará a ter acesso ao sistema."
