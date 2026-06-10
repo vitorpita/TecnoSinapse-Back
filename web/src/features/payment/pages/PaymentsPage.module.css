@@ -48,6 +48,7 @@
 .tdAmount  { text-align: right; font-weight: 700 !important; }
 .tdDate    { color: #888; font-size: 12px !important; }
 .empty     { color: #bbb; }
+.thRight   { text-align: right !important; }
 
 .actions { display: flex; align-items: center; gap: 4px; }
 .actionBtn { width: 30px; height: 30px; background: none; border: 1px solid #dde3ea; border-radius: 6px; color: #555; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; transition: all 0.15s; }

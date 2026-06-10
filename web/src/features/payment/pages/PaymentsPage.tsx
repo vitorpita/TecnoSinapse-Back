@@ -236,9 +236,9 @@ export default function PaymentsPage() {
                 <th>Pedido</th>
                 <th>Cliente</th>
                 <th>Método</th>
-                <th>Total</th>
-                <th>Pago</th>
-                <th>Pendente</th>
+                <th className={styles.thRight}>Total</th>
+                <th className={styles.thRight}>Pago</th>
+                <th className={styles.thRight}>Pendente</th>
                 <th>Vencimento</th>
                 <th>Status</th>
                 <th>Ações</th>

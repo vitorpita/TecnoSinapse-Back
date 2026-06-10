@@ -449,7 +449,7 @@ export default function CashRegisterPage() {
                   <th>#</th>
                   <th>Descrição</th>
                   <th>Tipo</th>
-                  <th>Valor</th>
+                  <th className={styles.thRight}>Valor</th>
                   <th>Hora</th>
                   <th>Ações</th>
                 </tr>

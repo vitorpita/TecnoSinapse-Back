@@ -19,7 +19,7 @@ public interface ProductDtos {
             @NotNull BigDecimal unitPrice,
             @NotNull BigDecimal purchasePrice,
             @NotNull Long categoryId,
-            @NotNull Long providerId
+            Long providerId
     ) {}
 
     record Response(

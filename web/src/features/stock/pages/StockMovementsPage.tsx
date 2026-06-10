@@ -14,12 +14,13 @@ const TYPE_CONFIG: Record<MovementType, { label: string; color: string; icon: Re
 }
 
 const REF_TYPE_LABELS: Record<string, string> = {
-  ORDER:       'Pedido de Venda',
-  PEDIDO:      'Pedido de Venda',
-  PURCHASE:    'Compra',
-  CUT_ORDER:   'Ordem de Corte',
-  MANUAL:      'Manual',
-  ADJUSTMENT:  'Ajuste',
+  ORDER:          'Pedido de Venda',
+  PEDIDO:         'Pedido de Venda',
+  PURCHASE:       'Pedido de Compra',
+  PURCHASE_ORDER: 'Pedido de Compra',
+  CUT_ORDER:      'Ordem de Corte',
+  MANUAL:         'Manual',
+  ADJUSTMENT:     'Ajuste',
 }
 
 const typeFilterOptions = [

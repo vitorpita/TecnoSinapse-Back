@@ -277,7 +277,7 @@ export default function ProductFormPage() {
 
               <Row gutter={16}>
                 <Col span={12}>
-                  <Form.Item name="categoryId" label={fieldLabel('Categoria')} rules={[{ required: true, message: 'Selecione a categoria' }]}>
+                  <Form.Item required name="categoryId" label={fieldLabel('Categoria')} rules={[{ required: true, message: 'Selecione a categoria' }]}>
                     <Select
                       showSearch
                       optionFilterProp="label"
@@ -301,7 +301,7 @@ export default function ProductFormPage() {
                   </Form.Item>
                 </Col>
                 <Col span={12}>
-                  <Form.Item name="providerId" label={fieldLabel('Fornecedor')} rules={[{ required: true, message: 'Selecione o fornecedor' }]}>
+                  <Form.Item name="providerId" label={fieldLabel('Fornecedor')}>
                     <Select
                       showSearch
                       optionFilterProp="label"

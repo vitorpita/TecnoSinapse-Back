@@ -46,7 +46,7 @@ function formatCurrency(v: number) {
 }
 function formatDate(d?: string) {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('pt-BR')
+  return new Date(d.includes('T') ? d : d + 'T00:00:00').toLocaleDateString('pt-BR')
 }
 function formatDateTime(d?: string) {
   if (!d) return '—'
@@ -96,6 +96,8 @@ export default function PurchaseOrdersPage() {
     qc.invalidateQueries({ queryKey: ['purchase-orders'] })
     qc.invalidateQueries({ queryKey: ['products'] })
     qc.invalidateQueries({ queryKey: ['stock-movements'] })
+    qc.invalidateQueries({ queryKey: ['cash-current'] })
+    qc.invalidateQueries({ queryKey: ['cash-history'] })
   }
 
   const onError = (err: unknown, fallback: string) => {
