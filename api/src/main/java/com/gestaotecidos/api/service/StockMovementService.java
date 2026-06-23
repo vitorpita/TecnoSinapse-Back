@@ -1,6 +1,8 @@
 package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.StockMovement;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.StockMovementType;
 import com.gestaotecidos.api.dto.StockMovementDtos;
 import com.gestaotecidos.api.exception.BusinessException;
@@ -19,13 +21,16 @@ public class StockMovementService {
     private final StockMovementRepository repository;
     private final ProductRepository productRepository;
     private final CashRegisterRepository cashRegisterRepository;
+    private final AuditLogService auditLogService;
 
     public StockMovementService(StockMovementRepository repository,
                                 ProductRepository productRepository,
-                                CashRegisterRepository cashRegisterRepository) {
+                                CashRegisterRepository cashRegisterRepository,
+                                AuditLogService auditLogService) {
         this.repository = repository;
         this.productRepository = productRepository;
         this.cashRegisterRepository = cashRegisterRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -56,7 +61,10 @@ public class StockMovementService {
         productRepository.save(product);
 
         var movement = new StockMovement(product, data.type(), data.quantity(), data.reason());
-        return mapToResponse(repository.save(movement));
+        var saved = repository.save(movement);
+        auditLogService.log(AuditModule.STOCK, AuditAction.CREATE, saved.getId(), product.getName(),
+                data.type().name() + " | Qtd: " + data.quantity() + " | " + data.reason());
+        return mapToResponse(saved);
     }
 
     public Page<StockMovementDtos.Response> findByProduct(Long productId, Pageable pageable) {

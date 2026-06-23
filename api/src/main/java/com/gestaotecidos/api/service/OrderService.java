@@ -4,6 +4,8 @@ import com.gestaotecidos.api.domain.CashMovement;
 import com.gestaotecidos.api.domain.Order;
 import com.gestaotecidos.api.domain.OrderItem;
 import com.gestaotecidos.api.domain.StockMovement;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.domain.Enums.OrderStatus;
 import com.gestaotecidos.api.domain.Enums.PersonRole;
@@ -38,6 +40,7 @@ public class OrderService {
     private final CashRegisterRepository cashRegisterRepository;
     private final CashMovementRepository cashMovementRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final AuditLogService auditLogService;
 
     public OrderService(OrderRepository orderRepository,
                         PersonRepository personRepository,
@@ -46,7 +49,8 @@ public class OrderService {
                         FinancialInstallmentService installmentService,
                         CashRegisterRepository cashRegisterRepository,
                         CashMovementRepository cashMovementRepository,
-                        StockMovementRepository stockMovementRepository) {
+                        StockMovementRepository stockMovementRepository,
+                        AuditLogService auditLogService) {
         this.orderRepository = orderRepository;
         this.personRepository = personRepository;
         this.userRepository = userRepository;
@@ -55,6 +59,7 @@ public class OrderService {
         this.cashRegisterRepository = cashRegisterRepository;
         this.cashMovementRepository = cashMovementRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -67,7 +72,10 @@ public class OrderService {
         var order = new Order();
         order.setStatus(OrderStatus.DIGITACAO);
         populateOrderFields(order, data);
-        return mapToResponse(orderRepository.save(order));
+        var saved = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.CREATE, saved.getId(),
+                "Pedido #" + saved.getId(), "Cliente: " + saved.getClient().getName());
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -82,7 +90,10 @@ public class OrderService {
 
         order.getItems().clear();
         populateOrderFields(order, data);
-        return mapToResponse(orderRepository.save(order));
+        var updated = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.UPDATE, updated.getId(),
+                "Pedido #" + updated.getId(), null);
+        return mapToResponse(updated);
     }
 
     @Transactional
@@ -94,7 +105,10 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.APROVADO);
-        return mapToResponse(orderRepository.save(order));
+        var saved = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido #" + saved.getId(), "Status: APROVADO");
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -106,7 +120,10 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.AGUARDANDO_APROVACAO);
-        return mapToResponse(orderRepository.save(order));
+        var saved = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido #" + saved.getId(), "Status: AGUARDANDO_APROVACAO");
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -150,6 +167,8 @@ public class OrderService {
 
         order.setStatus(OrderStatus.FATURADO);
         var saved = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido #" + saved.getId(), "Status: FATURADO | Total: " + saved.getTotalAmount());
 
         // Registra baixas de estoque por item
         saved.getItems().forEach(item -> {
@@ -199,7 +218,10 @@ public class OrderService {
         }
 
         order.setStatus(OrderStatus.CANCELADO);
-        return mapToResponse(orderRepository.save(order));
+        var saved = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.DELETE, saved.getId(),
+                "Pedido #" + saved.getId(), "Status: CANCELADO");
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -209,7 +231,10 @@ public class OrderService {
             throw new BusinessException("Somente pedidos FATURADOS podem ser enviados ao cliente.");
         }
         order.setStatus(OrderStatus.ENVIADO);
-        return mapToResponse(orderRepository.save(order));
+        var saved = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido #" + saved.getId(), "Status: ENVIADO");
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -219,7 +244,10 @@ public class OrderService {
             throw new BusinessException("Somente pedidos ENVIADOS podem ser marcados como entregues.");
         }
         order.setStatus(OrderStatus.ENTREGUE);
-        return mapToResponse(orderRepository.save(order));
+        var saved = orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido #" + saved.getId(), "Status: ENTREGUE");
+        return mapToResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -250,6 +278,8 @@ public class OrderService {
 
         order.deactivate();
         orderRepository.save(order);
+        auditLogService.log(AuditModule.ORDERS, AuditAction.DELETE, order.getId(),
+                "Pedido #" + order.getId(), null);
     }
 
     private Order findEntityById(Long id) {

@@ -2,6 +2,8 @@ package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.Product;
 import com.gestaotecidos.api.domain.StockMovement;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.StockMovementType;
 import com.gestaotecidos.api.dto.ProductDtos;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
@@ -21,12 +23,15 @@ public class ProductService {
     private final ProductRepository repository;
     private final CategoryRepository categoryRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final AuditLogService auditLogService;
 
     public ProductService(ProductRepository repository, CategoryRepository categoryRepository,
-                          StockMovementRepository stockMovementRepository) {
+                          StockMovementRepository stockMovementRepository,
+                          AuditLogService auditLogService) {
         this.repository = repository;
         this.categoryRepository = categoryRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -38,6 +43,8 @@ public class ProductService {
             saved.setSku(String.format("SKU-%05d", saved.getId()));
             saved = repository.save(saved);
         }
+        auditLogService.log(AuditModule.PRODUCTS, AuditAction.CREATE, saved.getId(), saved.getName(),
+                "SKU: " + saved.getSku());
         return mapToResponse(saved);
     }
 
@@ -58,6 +65,8 @@ public class ProductService {
             stockMovementRepository.save(movement);
         }
 
+        auditLogService.log(AuditModule.PRODUCTS, AuditAction.UPDATE, saved.getId(), saved.getName(),
+                "SKU: " + saved.getSku());
         return mapToResponse(saved);
     }
 
@@ -79,6 +88,7 @@ public class ProductService {
         var product = findEntityById(id);
         product.deactivate();
         repository.save(product);
+        auditLogService.log(AuditModule.PRODUCTS, AuditAction.DEACTIVATE, product.getId(), product.getName(), null);
     }
 
     private Product findEntityById(Long id) {

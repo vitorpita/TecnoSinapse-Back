@@ -18,7 +18,6 @@ const REF_TYPE_LABELS: Record<string, string> = {
   PEDIDO:         'Pedido de Venda',
   PURCHASE:       'Pedido de Compra',
   PURCHASE_ORDER: 'Pedido de Compra',
-  CUT_ORDER:      'Ordem de Corte',
   MANUAL:         'Manual',
   ADJUSTMENT:     'Ajuste',
 }
@@ -136,10 +135,9 @@ export default function StockMovementsPage() {
       {/* ── Cards de resumo ───────────────────────── */}
       <div className={styles.cards}>
         {[
-          { label: 'Total de Movimentações', value: String(totalMov),                                    accent: '#042C53' },
-          { label: 'Total de Entradas',      value: totalEntradas.toLocaleString('pt-BR') + ' un.',      accent: '#1D9E75' },
-          { label: 'Total de Saídas',        value: totalSaidas.toLocaleString('pt-BR') + ' un.',        accent: '#E24B4A' },
-          { label: 'Saldo do Período',       value: (totalEntradas - totalSaidas).toLocaleString('pt-BR') + ' un.', accent: '#378ADD' },
+          { label: 'Total de Movimentações', value: String(totalMov),                               accent: '#042C53' },
+          { label: 'Total de Entradas',      value: totalEntradas.toLocaleString('pt-BR') + ' un.', accent: '#1D9E75' },
+          { label: 'Total de Saídas',        value: totalSaidas.toLocaleString('pt-BR') + ' un.',   accent: '#E24B4A' },
         ].map(card => (
           <div key={card.label} className={styles.card} style={{ borderTopColor: card.accent }}>
             <span className={styles.cardLabel}>{card.label}</span>

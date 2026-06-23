@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuditLogService {
@@ -21,6 +23,7 @@ public class AuditLogService {
         this.repository = repository;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(AuditModule module, AuditAction action, Long entityId, String entityName, String details) {
         Long userId = null;
         String userName = null;
@@ -35,10 +38,12 @@ public class AuditLogService {
         repository.save(entry);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void log(AuditModule module, AuditAction action, Long entityId, String entityName) {
         log(module, action, entityId, entityName, null);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAs(Long userId, String userName, AuditModule module, AuditAction action,
                       Long entityId, String entityName, String details) {
         var entry = new AuditLog(userId, userName, module, action, entityId, entityName, details);

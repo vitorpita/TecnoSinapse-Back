@@ -329,12 +329,13 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                       control={control}
                       render={({ field }) => (
                         <DatePicker
-                          value={field.value ? dayjs(field.value) : null}
+                          value={field.value ? dayjs(field.value, 'YYYY-MM-DD') : null}
                           onChange={(d) => field.onChange(d ? d.format('YYYY-MM-DD') : '')}
                           format="DD/MM/YYYY"
                           size="large"
                           style={{ width: '100%' }}
-                          placeholder="Selecione a data"
+                          placeholder="DD/MM/AAAA"
+                          needConfirm={false}
                         />
                       )}
                     />

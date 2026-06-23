@@ -1,6 +1,8 @@
 package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.Person;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.PersonRole;
 import com.gestaotecidos.api.dto.PersonDtos;
 import com.gestaotecidos.api.exception.ConflictException;
@@ -16,14 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class PersonService {
 
     private final PersonRepository repository;
+    private final AuditLogService auditLogService;
 
-    public PersonService(PersonRepository repository) {
+    public PersonService(PersonRepository repository, AuditLogService auditLogService) {
         this.repository = repository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
     public PersonDtos.Response create(PersonDtos.Request data) {
-        // Validar que roles não é nulo ou vazio
         if (data.roles() == null || data.roles().isEmpty()) {
             throw new BusinessException("Pelo menos um papel (role) deve ser atribuído à pessoa.");
         }
@@ -36,12 +39,14 @@ public class PersonService {
 
         var person = new Person();
         updatePersonFromDto(person, data);
-        return mapToResponse(repository.save(person));
+        var saved = repository.save(person);
+        auditLogService.log(AuditModule.PERSONS, AuditAction.CREATE, saved.getId(), saved.getName(),
+                "Papéis: " + saved.getRoles());
+        return mapToResponse(saved);
     }
 
     @Transactional
     public PersonDtos.Response update(Long id, PersonDtos.Request data) {
-        // Validar que roles não é nulo ou vazio
         if (data.roles() == null || data.roles().isEmpty()) {
             throw new BusinessException("Pelo menos um papel (role) deve ser atribuído à pessoa.");
         }
@@ -57,7 +62,9 @@ public class PersonService {
         }
 
         updatePersonFromDto(person, data);
-        return mapToResponse(repository.save(person));
+        var saved = repository.save(person);
+        auditLogService.log(AuditModule.PERSONS, AuditAction.UPDATE, saved.getId(), saved.getName(), null);
+        return mapToResponse(saved);
     }
 
     public Page<PersonDtos.Response> findAll(String search, Pageable pageable) {
@@ -87,6 +94,7 @@ public class PersonService {
         var person = findEntityById(id);
         person.deactivate();
         repository.save(person);
+        auditLogService.log(AuditModule.PERSONS, AuditAction.DEACTIVATE, person.getId(), person.getName(), null);
     }
 
     @Transactional
@@ -107,7 +115,9 @@ public class PersonService {
         }
 
         person.reactivate();
-        return mapToResponse(repository.save(person));
+        var saved = repository.save(person);
+        auditLogService.log(AuditModule.PERSONS, AuditAction.UPDATE, saved.getId(), saved.getName(), "Reativação");
+        return mapToResponse(saved);
     }
 
     private Person findEntityById(Long id) {

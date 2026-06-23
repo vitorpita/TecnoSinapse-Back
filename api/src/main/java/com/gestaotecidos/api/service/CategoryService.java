@@ -1,6 +1,8 @@
 package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.Category;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.dto.CategoryDtos;
 import com.gestaotecidos.api.exception.ConflictException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
@@ -15,9 +17,11 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository repository;
+    private final AuditLogService auditLogService;
 
-    public CategoryService(CategoryRepository repository) {
+    public CategoryService(CategoryRepository repository, AuditLogService auditLogService) {
         this.repository = repository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -30,6 +34,7 @@ public class CategoryService {
         category.setName(data.name());
         category.setDescription(data.description());
         category = repository.save(category);
+        auditLogService.log(AuditModule.CATEGORIES, AuditAction.CREATE, category.getId(), category.getName(), null);
         return mapToResponse(category);
     }
 
@@ -57,6 +62,7 @@ public class CategoryService {
         category.setName(data.name());
         category.setDescription(data.description());
         category = repository.save(category);
+        auditLogService.log(AuditModule.CATEGORIES, AuditAction.UPDATE, category.getId(), category.getName(), null);
         return mapToResponse(category);
     }
 
@@ -65,6 +71,7 @@ public class CategoryService {
         var category = findEntityById(id);
         category.deactivate();
         repository.save(category);
+        auditLogService.log(AuditModule.CATEGORIES, AuditAction.DEACTIVATE, category.getId(), category.getName(), null);
     }
 
     private Category findEntityById(Long id) {

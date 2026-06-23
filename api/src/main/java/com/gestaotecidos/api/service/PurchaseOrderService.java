@@ -4,6 +4,8 @@ import com.gestaotecidos.api.domain.CashMovement;
 import com.gestaotecidos.api.domain.PurchaseOrder;
 import com.gestaotecidos.api.domain.PurchaseOrderItem;
 import com.gestaotecidos.api.domain.StockMovement;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.domain.Enums.PersonRole;
 import com.gestaotecidos.api.domain.Enums.PurchaseOrderStatus;
@@ -17,6 +19,7 @@ import com.gestaotecidos.api.repository.PersonRepository;
 import com.gestaotecidos.api.repository.ProductRepository;
 import com.gestaotecidos.api.repository.PurchaseOrderRepository;
 import com.gestaotecidos.api.repository.StockMovementRepository;
+import com.gestaotecidos.api.service.AuditLogService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,19 +40,22 @@ public class PurchaseOrderService {
     private final StockMovementRepository stockMovementRepository;
     private final CashRegisterRepository cashRegisterRepository;
     private final CashMovementRepository cashMovementRepository;
+    private final AuditLogService auditLogService;
 
     public PurchaseOrderService(PurchaseOrderRepository repository,
                                 PersonRepository personRepository,
                                 ProductRepository productRepository,
                                 StockMovementRepository stockMovementRepository,
                                 CashRegisterRepository cashRegisterRepository,
-                                CashMovementRepository cashMovementRepository) {
+                                CashMovementRepository cashMovementRepository,
+                                AuditLogService auditLogService) {
         this.repository = repository;
         this.personRepository = personRepository;
         this.productRepository = productRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.cashRegisterRepository = cashRegisterRepository;
         this.cashMovementRepository = cashMovementRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -77,7 +83,10 @@ public class PurchaseOrderService {
             order.addItem(new PurchaseOrderItem(product, itemDto.quantity(), itemDto.unitCost()));
         });
 
-        return mapToResponse(repository.save(order));
+        var saved = repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.CREATE, saved.getId(),
+                "Pedido de Compra #" + saved.getId(), "Fornecedor: " + supplier.getName());
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -110,7 +119,10 @@ public class PurchaseOrderService {
             order.addItem(new PurchaseOrderItem(product, itemDto.quantity(), itemDto.unitCost()));
         });
 
-        return mapToResponse(repository.save(order));
+        var saved = repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido de Compra #" + saved.getId(), null);
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -120,7 +132,10 @@ public class PurchaseOrderService {
             throw new BusinessException("Somente pedidos em ABERTO podem ser aprovados.");
         }
         order.setStatus(PurchaseOrderStatus.APROVADO);
-        return mapToResponse(repository.save(order));
+        var saved = repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido de Compra #" + saved.getId(), "Status: APROVADO");
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -130,7 +145,10 @@ public class PurchaseOrderService {
             throw new BusinessException("Somente pedidos APROVADOS podem ser enviados para recebimento.");
         }
         order.setStatus(PurchaseOrderStatus.AGUARDANDO_RECEBIMENTO);
-        return mapToResponse(repository.save(order));
+        var saved = repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido de Compra #" + saved.getId(), "Status: AGUARDANDO_RECEBIMENTO");
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -200,7 +218,10 @@ public class PurchaseOrderService {
 
         order.setStatus(allReceived ? PurchaseOrderStatus.RECEBIDO_TOTAL : PurchaseOrderStatus.RECEBIDO_PARCIAL);
 
-        return mapToResponse(repository.save(order));
+        var saved = repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido de Compra #" + saved.getId(), "Status: " + saved.getStatus().name());
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -215,6 +236,8 @@ public class PurchaseOrderService {
 
         order.setStatus(PurchaseOrderStatus.FINALIZADO);
         var saved = repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.UPDATE, saved.getId(),
+                "Pedido de Compra #" + saved.getId(), "Status: FINALIZADO");
 
         BigDecimal receivedAmount = saved.getItems().stream()
                 .map(i -> i.getReceivedQuantity().subtract(i.getDamagedQuantity()).multiply(i.getUnitCost()))
@@ -245,7 +268,10 @@ public class PurchaseOrderService {
             throw new BusinessException("Este pedido já foi cancelado.");
         }
         order.setStatus(PurchaseOrderStatus.CANCELADO);
-        return mapToResponse(repository.save(order));
+        var saved = repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.DELETE, saved.getId(),
+                "Pedido de Compra #" + saved.getId(), "Status: CANCELADO");
+        return mapToResponse(saved);
     }
 
     @Transactional(readOnly = true)
@@ -267,6 +293,8 @@ public class PurchaseOrderService {
         }
         order.deactivate();
         repository.save(order);
+        auditLogService.log(AuditModule.PURCHASE_ORDERS, AuditAction.DELETE, order.getId(),
+                "Pedido de Compra #" + order.getId(), null);
     }
 
     private void validateNoDuplicateProducts(List<PurchaseOrderDtos.ItemRequest> items) {
