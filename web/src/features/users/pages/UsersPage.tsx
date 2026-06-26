@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { App, Button, Drawer, Form, Input, Modal, Popconfirm, Select, Spin, Switch, Tag, Tooltip, Empty } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeInvisibleOutlined, EyeTwoTone, ReloadOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, SearchOutlined, EyeInvisibleOutlined, EyeTwoTone, ReloadOutlined, MinusOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { userService, type UserRecord, type UserRole } from '../userService'
 import { cargoService } from '@/features/cargos/cargoService'
@@ -189,6 +189,7 @@ export default function UsersPage() {
               size="small"
               checked={showInactive}
               onChange={(v) => { setShowInactive(v); setPage(0) }}
+              style={showInactive ? { backgroundColor: '#E24B4A' } : undefined}
             />
             <span style={{ color: showInactive ? '#E24B4A' : '#888' }}>
               {showInactive ? 'Inativos' : 'Ativos'}
@@ -260,8 +261,8 @@ export default function UsersPage() {
                             okButtonProps={{ danger: true }}
                           >
                             <Tooltip title="Inativar">
-                              <button className={`${styles.actionBtn} ${styles.actionDanger}`}>
-                                <DeleteOutlined />
+                              <button className={`${styles.actionBtn} ${styles.actionBtnRound} ${styles.actionDanger}`}>
+                                <MinusOutlined />
                               </button>
                             </Tooltip>
                           </Popconfirm>
@@ -274,7 +275,7 @@ export default function UsersPage() {
                             cancelText="Cancelar"
                           >
                             <Tooltip title="Reativar">
-                              <button className={styles.actionBtn}>
+                              <button className={`${styles.actionBtn} ${styles.actionBtnRound}`}>
                                 <ReloadOutlined />
                               </button>
                             </Tooltip>

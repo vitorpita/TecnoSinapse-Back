@@ -33,7 +33,10 @@ export interface PurchaseOrderRecord {
   observation?:          string
   expectedDeliveryDate?: string
   paymentCondition?:     string
+  paymentMethods?:       string[]
   freightType?:          FreightType
+  freightCost?:          number
+  discount?:             number
   invoiceNumber?:        string
   receivedAt?:           string
   createdAt?:            string
@@ -44,7 +47,10 @@ export interface CreatePurchaseOrderRequest {
   supplierId:            number
   expectedDeliveryDate?: string
   paymentCondition:      string
+  paymentMethods?:       string[]
   freightType?:          FreightType
+  freightCost?:          number
+  discount?:             number
   observation?:          string
   items: {
     productId: number

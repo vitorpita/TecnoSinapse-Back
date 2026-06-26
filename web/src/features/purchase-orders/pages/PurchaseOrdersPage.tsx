@@ -695,10 +695,50 @@ export default function PurchaseOrdersPage() {
 
           <Divider />
           <div className={styles.detailTotals}>
-            <div className={styles.detailTotalRow}>
-              <span>Total do Pedido</span>
-              <span>{formatCurrency(Number(selectedOrder.totalAmount))}</span>
-            </div>
+            {(() => {
+              const freight  = Number(selectedOrder.freightCost ?? 0)
+              const disc     = Number(selectedOrder.discount ?? 0)
+              const items    = selectedOrder.items ?? []
+              const subtotal = items.reduce((a, i) => a + Number(i.quantity) * Number(i.unitCost), 0)
+              const hasDamages = items.some(i => Number(i.damagedQuantity ?? 0) > 0)
+              const isReceived = ['RECEBIDO_PARCIAL', 'RECEBIDO_TOTAL', 'FINALIZADO'].includes(selectedOrder.status)
+              const netValue = items.reduce(
+                (a, i) => a + Math.max(0, Number(i.receivedQuantity ?? 0) - Number(i.damagedQuantity ?? 0)) * Number(i.unitCost), 0
+              )
+              const effectivePaid = Math.max(0, netValue + freight - disc)
+              return (
+                <>
+                  {(freight > 0 || disc > 0) && (
+                    <div className={styles.detailTotalRow}>
+                      <span>Subtotal Produtos</span>
+                      <span>{formatCurrency(subtotal)}</span>
+                    </div>
+                  )}
+                  {freight > 0 && (
+                    <div className={styles.detailTotalRow}>
+                      <span>Frete</span>
+                      <span>+ {formatCurrency(freight)}</span>
+                    </div>
+                  )}
+                  {disc > 0 && (
+                    <div className={styles.detailTotalRow}>
+                      <span>Desconto</span>
+                      <span className={styles.detailDiscountValue}>- {formatCurrency(disc)}</span>
+                    </div>
+                  )}
+                  <div className={`${styles.detailTotalRow} ${styles.detailTotalFinal}`}>
+                    <span>Total do Pedido</span>
+                    <span>{formatCurrency(Number(selectedOrder.totalAmount))}</span>
+                  </div>
+                  {hasDamages && isReceived && (
+                    <div className={`${styles.detailTotalRow} ${styles.detailTotalEffective}`}>
+                      <span>Valor Efetivamente Pago</span>
+                      <span>{formatCurrency(effectivePaid)}</span>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
           </div>
         </Drawer>
       )}

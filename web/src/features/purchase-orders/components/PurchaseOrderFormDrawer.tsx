@@ -37,7 +37,7 @@ const PAYMENT_CONDITION_OPTIONS = [
 const schema = z.object({
   supplierId:           z.number({ required_error: 'Selecione o fornecedor' }),
   expectedDeliveryDate: z.string().optional(),
-  paymentMethod:        z.string().optional(),
+  paymentMethods:       z.array(z.string()).optional(),
   paymentCondition:     z.string().min(1, 'Informe a condição de pagamento'),
   freightType:          z.enum(['CIF', 'FOB', 'OUTRO']).optional(),
   freightCost:          z.number().min(0).optional(),
@@ -91,7 +91,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
     defaultValues: {
       supplierId:           undefined,
       expectedDeliveryDate: '',
-      paymentMethod:        undefined,
+      paymentMethods:       [] as string[],
       paymentCondition:     '',
       freightType:          undefined,
       freightCost:          0,
@@ -108,11 +108,11 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
       reset({
         supplierId:           order.supplierId,
         expectedDeliveryDate: order.expectedDeliveryDate ?? '',
-        paymentMethod:        (order as { paymentMethod?: string }).paymentMethod ?? undefined,
+        paymentMethods:       order.paymentMethods ?? [],
         paymentCondition:     order.paymentCondition ?? '',
         freightType:          order.freightType ?? undefined,
-        freightCost:          0,
-        discount:             0,
+        freightCost:          Number(order.freightCost ?? 0),
+        discount:             Number(order.discount ?? 0),
         observation:          order.observation ?? '',
         items: order.items.map(i => ({
           productId: i.productId,
@@ -124,7 +124,7 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
       reset({
         supplierId:           undefined,
         expectedDeliveryDate: '',
-        paymentMethod:        undefined,
+        paymentMethods:       [],
         paymentCondition:     '',
         freightType:          undefined,
         freightCost:          0,
@@ -252,13 +252,14 @@ export default function PurchaseOrderFormDrawer({ open, order, onClose, onSucces
                 <Col xs={24} sm={12}>
                   <Form.Item label={<span className={styles.fieldLabel}>Forma de Pagamento</span>}>
                     <Controller
-                      name="paymentMethod"
+                      name="paymentMethods"
                       control={control}
                       render={({ field }) => (
                         <Select
                           {...field}
+                          mode="multiple"
                           allowClear
-                          placeholder="Selecione"
+                          placeholder="Selecione uma ou mais"
                           size="large"
                           options={PAYMENT_METHOD_OPTIONS}
                         />

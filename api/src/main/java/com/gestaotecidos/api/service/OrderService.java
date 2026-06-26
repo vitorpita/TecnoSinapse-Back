@@ -215,15 +215,11 @@ public class OrderService {
             order.getStatus() == OrderStatus.ENVIADO) {
             revertStock(order);
             installmentService.cancelByOrder(order.getId());
-            cashRegisterRepository.findOpenRegister().ifPresent(cashRegister -> {
-                var estorno = new CashMovement();
-                estorno.setCashRegister(cashRegister);
-                estorno.setType(CashMovementType.ESTORNO);
-                estorno.setAmount(order.getTotalAmount());
-                estorno.setDescription("Estorno - Pedido #" + order.getId() + " cancelado");
-                estorno.setOrder(order);
-                cashMovementRepository.save(estorno);
-            });
+            cashMovementRepository.findByOrderIdAndType(order.getId(), CashMovementType.RECEBIMENTO)
+                    .forEach(m -> {
+                        m.setCancelled(true);
+                        cashMovementRepository.save(m);
+                    });
         }
 
         order.setStatus(OrderStatus.CANCELADO);

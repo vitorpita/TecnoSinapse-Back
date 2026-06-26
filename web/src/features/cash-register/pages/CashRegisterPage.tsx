@@ -386,7 +386,7 @@ export default function CashRegisterPage() {
             },
             {
               label: 'Movimentações',
-              value: String(currentCash.movements?.length ?? 0),
+              value: String(currentCash.movements?.filter(m => !m.cancelled).length ?? 0),
               accent: '#F59E0B',
             },
           ].map((card) => (
@@ -484,18 +484,32 @@ export default function CashRegisterPage() {
                       m.description.toLowerCase().includes(search.toLowerCase())
                   )
                   .map((movement: CashMovement) => (
-                    <tr key={movement.id}>
+                    <tr key={movement.id} style={movement.cancelled ? { opacity: 0.55 } : undefined}>
                       <td className={styles.tdId}>#{movement.id}</td>
-                      <td className={styles.tdDesc}>{movement.description}</td>
+                      <td className={styles.tdDesc} style={movement.cancelled ? { textDecoration: 'line-through' } : undefined}>
+                        {movement.description}
+                      </td>
                       <td>
                         {(() => {
                           const d = MOVEMENT_DISPLAY[movement.type] ?? { label: movement.type, color: 'default', prefix: '', cssClass: 'amountIn' }
-                          return <Tag color={d.color}>{d.label}</Tag>
+                          return (
+                            <>
+                              <Tag color={d.color}>{d.label}</Tag>
+                              {movement.cancelled && <Tag color="red">Cancelado</Tag>}
+                            </>
+                          )
                         })()}
                       </td>
                       <td className={styles.tdAmount}>
                         {(() => {
                           const d = MOVEMENT_DISPLAY[movement.type] ?? { label: movement.type, color: 'default', prefix: '', cssClass: 'amountIn' }
+                          if (movement.cancelled) {
+                            return (
+                              <span className={styles.amountOut}>
+                                - {formatCurrency(movement.amount)}
+                              </span>
+                            )
+                          }
                           return (
                             <span className={styles[d.cssClass as keyof typeof styles]}>
                               {d.prefix} {formatCurrency(movement.amount)}
@@ -508,7 +522,7 @@ export default function CashRegisterPage() {
                       </td>
                       <td>
                         <div className={styles.actions}>
-                          {canWrite && (
+                          {canWrite && !movement.cancelled && (
                             <Popconfirm
                               title="Excluir movimentação"
                               description="Deseja realmente excluir esta movimentação?"
@@ -825,10 +839,23 @@ export default function CashRegisterPage() {
                     {(historyDetailCash.movements ?? []).map((m: CashMovement) => {
                       const d = MOVEMENT_DISPLAY[m.type] ?? { label: m.type, color: 'default', prefix: '', cssClass: 'amountIn' }
                       return (
-                        <tr key={m.id}>
-                          <td>{m.description}</td>
-                          <td><Tag color={d.color}>{d.label}</Tag></td>
-                          <td><span className={styles[d.cssClass as keyof typeof styles]}>{d.prefix} {formatCurrency(m.amount)}</span></td>
+                        <tr key={m.id} style={m.cancelled ? { opacity: 0.55 } : undefined}>
+                          <td style={m.cancelled ? { textDecoration: 'line-through' } : undefined}>{m.description}</td>
+                          <td>
+                            <Tag color={d.color}>{d.label}</Tag>
+                            {m.cancelled && <Tag color="red">Cancelado</Tag>}
+                          </td>
+                          <td>
+                            {m.cancelled ? (
+                              <span className={styles.amountOut}>
+                                - {formatCurrency(m.amount)}
+                              </span>
+                            ) : (
+                              <span className={styles[d.cssClass as keyof typeof styles]}>
+                                {d.prefix} {formatCurrency(m.amount)}
+                              </span>
+                            )}
+                          </td>
                           <td>{formatDate(m.createdAt)}</td>
                         </tr>
                       )

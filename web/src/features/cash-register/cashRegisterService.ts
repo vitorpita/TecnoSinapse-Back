@@ -10,6 +10,7 @@ export interface CashMovement {
   orderId?:    number
   paymentId?:  number
   createdAt?:  string
+  cancelled:   boolean
 }
 
 export interface CashRegisterRecord {

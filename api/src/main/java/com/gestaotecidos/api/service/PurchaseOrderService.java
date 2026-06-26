@@ -74,7 +74,11 @@ public class PurchaseOrderService {
         order.setStatus(PurchaseOrderStatus.ABERTO);
         order.setExpectedDeliveryDate(data.expectedDeliveryDate());
         order.setPaymentCondition(data.paymentCondition());
+        order.setPaymentMethods(data.paymentMethods() != null && !data.paymentMethods().isEmpty()
+                ? String.join(",", data.paymentMethods()) : null);
         order.setFreightType(data.freightType());
+        order.setFreightCost(data.freightCost() != null ? data.freightCost() : BigDecimal.ZERO);
+        order.setDiscount(data.discount() != null ? data.discount() : BigDecimal.ZERO);
         order.setObservation(data.observation());
 
         data.items().forEach(itemDto -> {
@@ -109,7 +113,11 @@ public class PurchaseOrderService {
         order.setSupplier(supplier);
         order.setExpectedDeliveryDate(data.expectedDeliveryDate());
         order.setPaymentCondition(data.paymentCondition());
+        order.setPaymentMethods(data.paymentMethods() != null && !data.paymentMethods().isEmpty()
+                ? String.join(",", data.paymentMethods()) : null);
         order.setFreightType(data.freightType());
+        order.setFreightCost(data.freightCost() != null ? data.freightCost() : BigDecimal.ZERO);
+        order.setDiscount(data.discount() != null ? data.discount() : BigDecimal.ZERO);
         order.setObservation(data.observation());
         order.getItems().clear();
 
@@ -243,11 +251,15 @@ public class PurchaseOrderService {
                 .map(i -> i.getReceivedQuantity().subtract(i.getDamagedQuantity()).multiply(i.getUnitCost()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (receivedAmount.compareTo(BigDecimal.ZERO) > 0) {
+        BigDecimal freightCostVal = saved.getFreightCost() != null ? saved.getFreightCost() : BigDecimal.ZERO;
+        BigDecimal discountVal = saved.getDiscount() != null ? saved.getDiscount() : BigDecimal.ZERO;
+        BigDecimal totalToPay = receivedAmount.add(freightCostVal).subtract(discountVal).max(BigDecimal.ZERO);
+
+        if (totalToPay.compareTo(BigDecimal.ZERO) > 0) {
             var movement = new CashMovement();
             movement.setCashRegister(cashRegister);
             movement.setType(CashMovementType.SAIDA);
-            movement.setAmount(receivedAmount);
+            movement.setAmount(totalToPay);
             movement.setDescription("Pagamento compra - Pedido #" + saved.getId() +
                     (saved.getInvoiceNumber() != null ? " · NF " + saved.getInvoiceNumber() : ""));
             cashMovementRepository.save(movement);
@@ -329,6 +341,10 @@ public class PurchaseOrderService {
                         i.getDamageReason()
                 )).toList();
 
+        String pmStr = order.getPaymentMethods();
+        List<String> paymentMethodsList = (pmStr != null && !pmStr.isBlank())
+                ? List.of(pmStr.split(",")) : List.of();
+
         return new PurchaseOrderDtos.Response(
                 order.getId(),
                 order.getSupplier().getId(),
@@ -337,7 +353,10 @@ public class PurchaseOrderService {
                 order.getTotalAmount(),
                 order.getExpectedDeliveryDate(),
                 order.getPaymentCondition(),
+                paymentMethodsList,
                 order.getFreightType(),
+                order.getFreightCost(),
+                order.getDiscount(),
                 order.getInvoiceNumber(),
                 order.getObservation(),
                 order.getReceivedAt(),

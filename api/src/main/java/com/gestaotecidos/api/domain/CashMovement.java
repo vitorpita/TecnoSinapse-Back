@@ -32,6 +32,9 @@ public class CashMovement extends BaseDomain {
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
+    @Column(nullable = false)
+    private boolean cancelled = false;
+
     public CashMovement() {}
 
     public CashRegister getCashRegister() { return cashRegister; }
@@ -46,4 +49,6 @@ public class CashMovement extends BaseDomain {
     public void setOrder(Order order) { this.order = order; }
     public Payment getPayment() { return payment; }
     public void setPayment(Payment payment) { this.payment = payment; }
+    public boolean isCancelled() { return cancelled; }
+    public void setCancelled(boolean cancelled) { this.cancelled = cancelled; }
 }

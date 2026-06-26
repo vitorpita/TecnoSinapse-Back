@@ -57,7 +57,8 @@ public interface CashRegisterDtos {
             String description,
             Long orderId,
             Long paymentId,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            boolean cancelled
     ) {}
 
     record PeriodSummary(

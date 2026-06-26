@@ -79,6 +79,8 @@
 .detailTotalRow { display: flex; justify-content: space-between; font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 300; color: #555; }
 .discountText { color: #E24B4A; }
 .detailTotalFinal { font-size: 18px !important; font-weight: 900 !important; color: #042C53 !important; padding-top: 8px; border-top: 1px solid #eef2f7; }
+.detailTotalEffective { font-size: 14px !important; font-weight: 700 !important; color: #1D9E75 !important; padding-top: 6px; border-top: 1px dashed #d1fae5; margin-top: 2px; }
+.detailDiscountValue { color: #1D9E75; }
 
 /* Inspection modal */
 .inspModal { display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; }

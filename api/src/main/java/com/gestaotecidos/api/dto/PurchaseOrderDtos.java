@@ -18,7 +18,10 @@ public interface PurchaseOrderDtos {
             @NotNull Long supplierId,
             LocalDate expectedDeliveryDate,
             @NotNull String paymentCondition,
+            List<String> paymentMethods,
             FreightType freightType,
+            BigDecimal freightCost,
+            BigDecimal discount,
             String observation,
             @NotEmpty List<ItemRequest> items
     ) {}
@@ -50,7 +53,10 @@ public interface PurchaseOrderDtos {
             BigDecimal totalAmount,
             LocalDate expectedDeliveryDate,
             String paymentCondition,
+            List<String> paymentMethods,
             FreightType freightType,
+            BigDecimal freightCost,
+            BigDecimal discount,
             String invoiceNumber,
             String observation,
             LocalDateTime receivedAt,

@@ -167,7 +167,8 @@ public class CashRegisterService {
                         m.getDescription(),
                         m.getOrder() != null ? m.getOrder().getId() : null,
                         m.getPayment() != null ? m.getPayment().getId() : null,
-                        m.getCreatedAt()
+                        m.getCreatedAt(),
+                        m.isCancelled()
                 )).toList();
 
         return new CashRegisterDtos.Response(
@@ -212,7 +213,7 @@ public class CashRegisterService {
 
     private BigDecimal sum(List<CashMovement> movements, Set<CashMovementType> types) {
         return movements.stream()
-                .filter(m -> types.contains(m.getType()))
+                .filter(m -> types.contains(m.getType()) && !m.isCancelled())
                 .map(CashMovement::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }

@@ -40,6 +40,15 @@ public class PurchaseOrder extends BaseDomain {
     @Column(columnDefinition = "VARCHAR(50)")
     private FreightType freightType;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal freightCost = BigDecimal.ZERO;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal discount = BigDecimal.ZERO;
+
+    @Column(length = 255)
+    private String paymentMethods;
+
     @Column(length = 100)
     private String invoiceNumber;
 
@@ -64,6 +73,12 @@ public class PurchaseOrder extends BaseDomain {
     public void setPaymentCondition(String paymentCondition) { this.paymentCondition = paymentCondition; }
     public FreightType getFreightType() { return freightType; }
     public void setFreightType(FreightType freightType) { this.freightType = freightType; }
+    public BigDecimal getFreightCost() { return freightCost; }
+    public void setFreightCost(BigDecimal freightCost) { this.freightCost = freightCost; }
+    public BigDecimal getDiscount() { return discount; }
+    public void setDiscount(BigDecimal discount) { this.discount = discount; }
+    public String getPaymentMethods() { return paymentMethods; }
+    public void setPaymentMethods(String paymentMethods) { this.paymentMethods = paymentMethods; }
     public String getInvoiceNumber() { return invoiceNumber; }
     public void setInvoiceNumber(String invoiceNumber) { this.invoiceNumber = invoiceNumber; }
     public LocalDateTime getReceivedAt() { return receivedAt; }
@@ -77,8 +92,11 @@ public class PurchaseOrder extends BaseDomain {
     }
 
     public void calculateTotal() {
-        this.totalAmount = items.stream()
+        BigDecimal itemsTotal = items.stream()
                 .map(PurchaseOrderItem::getSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal freight = freightCost != null ? freightCost : BigDecimal.ZERO;
+        BigDecimal disc = discount != null ? discount : BigDecimal.ZERO;
+        this.totalAmount = itemsTotal.add(freight).subtract(disc).max(BigDecimal.ZERO);
     }
 }
