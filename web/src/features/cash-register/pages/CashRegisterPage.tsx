@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
-import { App, Alert, Button, Drawer, Form, Input,
+import { App, Alert, Button, DatePicker, Drawer, Form, Input,
   Select, Spin, Tag, Tooltip, Empty, Pagination, Popconfirm, Modal, Descriptions } from 'antd'
+import dayjs, { type Dayjs } from 'dayjs'
 import { MoneyInput } from '@/components/MoneyInput'
 import {
   PlusOutlined, SearchOutlined, LockOutlined, UnlockOutlined, DeleteOutlined, EyeOutlined, PrinterOutlined } from '@ant-design/icons'
@@ -65,11 +66,14 @@ export default function CashRegisterPage() {
   const { has, isAdmin } = usePermission()
   const canWrite = isAdmin || has('cash:write')
 
+  const today = dayjs()
   const [page, setPage] = useState(0)
   const [movementDrawer, setMovementDrawer] = useState(false)
   const [closeDrawer, setCloseDrawer] = useState(false)
   const [search, setSearch] = useState('')
   const [historyDetailCash, setHistoryDetailCash] = useState<CashRegisterRecord | null>(null)
+  const [periodPreset, setPeriodPreset] = useState<'today' | 'yesterday' | 'week' | 'month' | 'custom'>('today')
+  const [customRange, setCustomRange] = useState<[Dayjs, Dayjs] | null>(null)
   const [previewHtml,       setPreviewHtml]       = useState('')
   const [previewOpen,       setPreviewOpen]       = useState(false)
   const [form] = Form.useForm()
@@ -85,6 +89,22 @@ export default function CashRegisterPage() {
     queryFn: () => cashRegisterService.list(page),
   })
 
+  const periodRange = (() => {
+    if (periodPreset === 'today')     return { from: today, to: today }
+    if (periodPreset === 'yesterday') return { from: today.subtract(1, 'day'), to: today.subtract(1, 'day') }
+    if (periodPreset === 'week')      return { from: today.startOf('week'), to: today }
+    if (periodPreset === 'month')     return { from: today.startOf('month'), to: today }
+    if (periodPreset === 'custom' && customRange) return { from: customRange[0], to: customRange[1] }
+    return { from: today, to: today }
+  })()
+  const fromStr = periodRange.from.format('YYYY-MM-DD')
+  const toStr   = periodRange.to.format('YYYY-MM-DD')
+
+  const { data: periodSummary } = useQuery({
+    queryKey: ['cash-summary', fromStr, toStr],
+    queryFn: () => cashRegisterService.getSummary(fromStr, toStr),
+  })
+
   const handleSearch = useCallback((value: string) => {
     setSearch(value)
     setPage(0)
@@ -97,6 +117,7 @@ export default function CashRegisterPage() {
       message.success('Movimentação registrada!')
       qc.invalidateQueries({ queryKey: ['cash-current'] })
       qc.invalidateQueries({ queryKey: ['cash-history'] })
+      qc.invalidateQueries({ queryKey: ['cash-summary'] })
       setMovementDrawer(false)
       form.resetFields()
     },
@@ -141,6 +162,7 @@ export default function CashRegisterPage() {
     onSuccess: () => {
       message.success('Movimentação excluída.')
       qc.invalidateQueries({ queryKey: ['cash-current'] })
+      qc.invalidateQueries({ queryKey: ['cash-summary'] })
     },
     onError: (err: unknown) => {
       const msg = (err as HttpError)?.response?.data?.message
@@ -513,6 +535,75 @@ export default function CashRegisterPage() {
           )}
         </div>
       )}
+
+      <div className={styles.periodPanel}>
+        <div className={styles.periodPanelHeader}>
+          <span className={styles.periodPanelTitle}>Resumo por Período</span>
+          <div className={styles.periodControls}>
+            {(
+              [
+                { key: 'today',     label: 'Hoje'        },
+                { key: 'yesterday', label: 'Ontem'       },
+                { key: 'week',      label: 'Esta semana' },
+                { key: 'month',     label: 'Este mês'    },
+                { key: 'custom',    label: 'Personalizado' },
+              ] as { key: typeof periodPreset; label: string }[]
+            ).map(({ key, label }) => (
+              <button
+                key={key}
+                className={`${styles.periodBtn} ${periodPreset === key ? styles.periodBtnActive : ''}`}
+                onClick={() => setPeriodPreset(key)}
+              >
+                {label}
+              </button>
+            ))}
+            {periodPreset === 'custom' && (
+              <DatePicker.RangePicker
+                size="small"
+                format="DD/MM/YYYY"
+                value={customRange ?? undefined}
+                onChange={(v) => v && setCustomRange([v[0]!, v[1]!])}
+                style={{ marginLeft: 4 }}
+                disabledDate={(d) => d.isAfter(today, 'day')}
+              />
+            )}
+          </div>
+        </div>
+
+        {periodSummary ? (
+          <div className={styles.periodMetrics}>
+            <div className={styles.periodMetric}>
+              <span className={styles.periodMetricLabel}>Entradas</span>
+              <span className={styles.periodMetricValue} style={{ color: '#1D9E75' }}>
+                {formatCurrency(periodSummary.totalIn)}
+              </span>
+            </div>
+            <div className={styles.periodMetric}>
+              <span className={styles.periodMetricLabel}>Saídas</span>
+              <span className={styles.periodMetricValue} style={{ color: '#E24B4A' }}>
+                {formatCurrency(periodSummary.totalOut)}
+              </span>
+            </div>
+            <div className={styles.periodMetric}>
+              <span className={styles.periodMetricLabel}>Líquido</span>
+              <span
+                className={styles.periodMetricValue}
+                style={{ color: periodSummary.net >= 0 ? '#042C53' : '#E24B4A' }}
+              >
+                {formatCurrency(periodSummary.net)}
+              </span>
+            </div>
+            <div className={styles.periodMetric}>
+              <span className={styles.periodMetricLabel}>Movimentações</span>
+              <span className={styles.periodMetricValue} style={{ color: '#F59E0B' }}>
+                {periodSummary.movementCount}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: '12px 0' }}><Spin size="small" /></div>
+        )}
+      </div>
 
       <div className={styles.tableWrap}>
         <div className={styles.tableHeader}>

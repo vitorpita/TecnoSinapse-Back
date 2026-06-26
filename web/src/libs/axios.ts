@@ -26,7 +26,7 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status
     const url: string = error.config?.url ?? ''
-    const isAuthEndpoint = url.includes('/auth/authenticate') || url.includes('/auth/register')
+    const isAuthEndpoint = url.includes('/auth/')
 
     if (status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('ts-auth')

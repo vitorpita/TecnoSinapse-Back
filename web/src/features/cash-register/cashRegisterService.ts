@@ -53,6 +53,13 @@ export interface PageResponse<T> {
   size:          number
 }
 
+export interface CashPeriodSummary {
+  totalIn:       number
+  totalOut:      number
+  net:           number
+  movementCount: number
+}
+
 export const cashRegisterService = {
   getCurrentCash: async (): Promise<CashRegisterRecord | null> => {
     try {
@@ -94,6 +101,11 @@ export const cashRegisterService = {
 
   findById: async (cashId: number): Promise<CashRegisterRecord> => {
     const { data } = await api.get(`/cash-registers/${cashId}`)
+    return data
+  },
+
+  getSummary: async (from: string, to: string): Promise<CashPeriodSummary> => {
+    const { data } = await api.get('/cash-registers/summary', { params: { from, to } })
     return data
   },
 }

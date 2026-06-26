@@ -15,6 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Service
 public class StockMovementService {
 
@@ -95,5 +99,16 @@ public class StockMovementService {
     public Page<StockMovementDtos.Response> findAll(String search, Pageable pageable) {
         String searchParam = (search != null && !search.isBlank()) ? search : "";
         return repository.findBySearch(searchParam, pageable).map(this::mapToResponse);
+    }
+
+    public StockMovementDtos.PeriodSummary getSummary(LocalDate from, LocalDate to) {
+        LocalDateTime dtFrom = from.atStartOfDay();
+        LocalDateTime dtTo   = to.plusDays(1).atStartOfDay();
+        BigDecimal entradas = repository.sumQuantityByType(StockMovementType.ENTRADA, dtFrom, dtTo);
+        BigDecimal saidas   = repository.sumQuantityByType(StockMovementType.SAIDA,   dtFrom, dtTo);
+        long count          = repository.countByPeriod(dtFrom, dtTo);
+        if (entradas == null) entradas = BigDecimal.ZERO;
+        if (saidas   == null) saidas   = BigDecimal.ZERO;
+        return new StockMovementDtos.PeriodSummary(entradas, saidas, count);
     }
 }

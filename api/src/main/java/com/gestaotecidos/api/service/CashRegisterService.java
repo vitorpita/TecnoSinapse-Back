@@ -7,6 +7,7 @@ import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.dto.CashRegisterDtos;
 import com.gestaotecidos.api.exception.BusinessException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
+import com.gestaotecidos.api.repository.CashMovementRepository;
 import com.gestaotecidos.api.repository.CashRegisterRepository;
 import com.gestaotecidos.api.repository.OrderRepository;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,10 +36,14 @@ public class CashRegisterService {
 
     private final CashRegisterRepository repository;
     private final OrderRepository orderRepository;
+    private final CashMovementRepository cashMovementRepository;
 
-    public CashRegisterService(CashRegisterRepository repository, OrderRepository orderRepository) {
+    public CashRegisterService(CashRegisterRepository repository,
+                               OrderRepository orderRepository,
+                               CashMovementRepository cashMovementRepository) {
         this.repository = repository;
         this.orderRepository = orderRepository;
+        this.cashMovementRepository = cashMovementRepository;
     }
 
     @Transactional
@@ -121,6 +127,17 @@ public class CashRegisterService {
 
     public Page<CashRegisterDtos.Response> findAll(Pageable pageable) {
         return repository.findAll(pageable).map(this::mapToSummary);
+    }
+
+    public CashRegisterDtos.PeriodSummary getSummary(LocalDate from, LocalDate to) {
+        LocalDateTime dtFrom = from.atStartOfDay();
+        LocalDateTime dtTo   = to.plusDays(1).atStartOfDay();
+        BigDecimal totalIn  = cashMovementRepository.sumByTypes(IN_TYPES,  dtFrom, dtTo);
+        BigDecimal totalOut = cashMovementRepository.sumByTypes(OUT_TYPES, dtFrom, dtTo);
+        long count          = cashMovementRepository.countByPeriod(dtFrom, dtTo);
+        if (totalIn  == null) totalIn  = BigDecimal.ZERO;
+        if (totalOut == null) totalOut = BigDecimal.ZERO;
+        return new CashRegisterDtos.PeriodSummary(totalIn, totalOut, totalIn.subtract(totalOut), count);
     }
 
     private CashRegister findEntityByIdWithMovements(Long id) {

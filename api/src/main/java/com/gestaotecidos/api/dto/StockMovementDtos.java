@@ -10,6 +10,12 @@ import java.time.LocalDateTime;
 
 public interface StockMovementDtos {
 
+    record PeriodSummary(
+            BigDecimal totalEntradas,
+            BigDecimal totalSaidas,
+            long movementCount
+    ) {}
+
     record Request(
             @NotNull Long productId,
             @NotNull StockMovementType type,

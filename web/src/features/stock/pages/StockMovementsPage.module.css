@@ -71,6 +71,19 @@
 
 .warningBox { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 300; color: #92400e; margin-top: -8px; margin-bottom: 16px; }
 
+/* Painel de período */
+.periodPanel { background: #fff; border-radius: 8px; border: 1px solid #eef2f7; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+.periodPanelHeader { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.periodPanelTitle { font-family: 'Exo 2', sans-serif; font-size: 13px; font-weight: 700; color: #042C53; }
+.periodControls { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.periodBtn { height: 28px; padding: 0 12px; border: 1px solid #dde3ea; border-radius: 6px; background: #fff; color: #555; font-family: 'Exo 2', sans-serif; font-size: 12px; font-weight: 400; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.periodBtn:hover { border-color: #378ADD; color: #378ADD; background: #f0f7ff; }
+.periodBtnActive { border-color: #042C53 !important; background: #042C53 !important; color: #fff !important; font-weight: 600 !important; }
+.periodMetrics { display: flex; gap: 36px; flex-wrap: wrap; }
+.periodMetric { display: flex; flex-direction: column; gap: 4px; }
+.periodMetricLabel { font-family: 'Rajdhani', sans-serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; }
+.periodMetricValue { font-family: 'Exo 2', sans-serif; font-size: 20px; font-weight: 900; line-height: 1; }
+
 @media (max-width: 1100px) { .cards { grid-template-columns: repeat(2, 1fr); } }
 
 @media (max-width: 768px) {

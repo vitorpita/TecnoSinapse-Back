@@ -37,6 +37,12 @@ export interface ProductOption {
   stockQuantity: number
 }
 
+export interface StockPeriodSummary {
+  totalEntradas: number
+  totalSaidas:   number
+  movementCount: number
+}
+
 export const stockMovementService = {
   list: async (page = 0, size = 20, search?: string): Promise<PageResponse<StockMovementRecord>> => {
     const { data } = await api.get('/stock-movements', {
@@ -60,6 +66,11 @@ export const stockMovementService = {
 
   create: async (payload: CreateStockMovementRequest): Promise<StockMovementRecord> => {
     const { data } = await api.post('/stock-movements', payload)
+    return data
+  },
+
+  getSummary: async (from: string, to: string): Promise<StockPeriodSummary> => {
+    const { data } = await api.get('/stock-movements/summary', { params: { from, to } })
     return data
   },
 

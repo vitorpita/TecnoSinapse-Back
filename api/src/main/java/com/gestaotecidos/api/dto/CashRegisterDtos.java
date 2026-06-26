@@ -59,4 +59,11 @@ public interface CashRegisterDtos {
             Long paymentId,
             LocalDateTime createdAt
     ) {}
+
+    record PeriodSummary(
+            BigDecimal totalIn,
+            BigDecimal totalOut,
+            BigDecimal net,
+            long movementCount
+    ) {}
 }

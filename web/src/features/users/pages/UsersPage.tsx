@@ -31,7 +31,7 @@ export default function UsersPage() {
   const qc = useQueryClient()
   const { has, isAdmin } = usePermission()
   const canWrite  = isAdmin || has('user:write')
-  const canDelete = isAdmin || has('user:delete')
+  const canDelete = isAdmin || has('user:delete') || has('user:write')
 
   const [page,         setPage]         = useState(0)
   const [search,       setSearch]       = useState('')

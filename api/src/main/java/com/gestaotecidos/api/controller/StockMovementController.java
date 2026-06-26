@@ -47,4 +47,16 @@ public class StockMovementController {
             @RequestParam(required = false) String search) {
         return ResponseEntity.ok(service.findAll(search, pageable));
     }
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('product:read')")
+    public ResponseEntity<StockMovementDtos.PeriodSummary> getSummary(
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate from,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate to) {
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
+        return ResponseEntity.ok(service.getSummary(
+                from != null ? from : today,
+                to   != null ? to   : today
+        ));
+    }
 }

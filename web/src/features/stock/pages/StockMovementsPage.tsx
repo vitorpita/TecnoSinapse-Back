@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { App, Button, Drawer, Form, Select, InputNumber, Input,
-         Modal, Popconfirm, Tag, Tooltip, Spin, Empty, Pagination } from 'antd'
+import { App, Button, DatePicker, Drawer, Form, Select, InputNumber, Input,
+         Modal, Tag, Spin, Empty, Pagination } from 'antd'
 import { PlusOutlined, SearchOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import dayjs, { type Dayjs } from 'dayjs'
 import { stockMovementService, type StockMovementRecord, type MovementType } from '../stockMovementService'
 import styles from './StockMovementsPage.module.css'
 
@@ -56,14 +57,33 @@ export default function StockMovementsPage() {
   const { message } = App.useApp()
   const qc = useQueryClient()
 
+  const today = dayjs()
   const [page,        setPage]        = useState(0)
   const [search,      setSearch]      = useState('')
   const [typeFilter,  setTypeFilter]  = useState('')
   const [drawerOpen,  setDrawerOpen]  = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
   const [customReason, setCustomReason] = useState(false)
+  const [periodPreset, setPeriodPreset] = useState<'today' | 'yesterday' | 'week' | 'month' | 'custom'>('today')
+  const [customRange,  setCustomRange]  = useState<[Dayjs, Dayjs] | null>(null)
 
   const [form] = Form.useForm()
+
+  const periodRange = (() => {
+    if (periodPreset === 'today')     return { from: today, to: today }
+    if (periodPreset === 'yesterday') return { from: today.subtract(1, 'day'), to: today.subtract(1, 'day') }
+    if (periodPreset === 'week')      return { from: today.startOf('week'), to: today }
+    if (periodPreset === 'month')     return { from: today.startOf('month'), to: today }
+    if (periodPreset === 'custom' && customRange) return { from: customRange[0], to: customRange[1] }
+    return { from: today, to: today }
+  })()
+  const fromStr = periodRange.from.format('YYYY-MM-DD')
+  const toStr   = periodRange.to.format('YYYY-MM-DD')
+
+  const { data: periodSummary } = useQuery({
+    queryKey: ['stock-summary', fromStr, toStr],
+    queryFn:  () => stockMovementService.getSummary(fromStr, toStr),
+  })
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['stock-movements', page, search],
@@ -81,6 +101,7 @@ export default function StockMovementsPage() {
     onSuccess: () => {
       message.success('Movimentação registrada com sucesso!')
       qc.invalidateQueries({ queryKey: ['stock-movements'] })
+      qc.invalidateQueries({ queryKey: ['stock-summary'] })
       qc.invalidateQueries({ queryKey: ['products'] })
       forceClose()
     },
@@ -96,11 +117,6 @@ export default function StockMovementsPage() {
   const filtered = movements.filter((m: StockMovementRecord) =>
     !typeFilter || m.type === typeFilter
   )
-
-  // Totalizadores
-  const totalEntradas = movements.filter(m => m.type === 'ENTRADA').reduce((a, m) => a + Number(m.quantity), 0)
-  const totalSaidas   = movements.filter(m => m.type === 'SAIDA').reduce((a, m) => a + Number(m.quantity), 0)
-  const totalMov      = data?.totalElements ?? 0
 
   const handleCloseRequest = () => {
     const values = form.getFieldsValue()
@@ -132,18 +148,65 @@ export default function StockMovementsPage() {
   return (
     <div className={styles.root}>
 
-      {/* ── Cards de resumo ───────────────────────── */}
-      <div className={styles.cards}>
-        {[
-          { label: 'Total de Movimentações', value: String(totalMov),                               accent: '#042C53' },
-          { label: 'Total de Entradas',      value: totalEntradas.toLocaleString('pt-BR') + ' un.', accent: '#1D9E75' },
-          { label: 'Total de Saídas',        value: totalSaidas.toLocaleString('pt-BR') + ' un.',   accent: '#E24B4A' },
-        ].map(card => (
-          <div key={card.label} className={styles.card} style={{ borderTopColor: card.accent }}>
-            <span className={styles.cardLabel}>{card.label}</span>
-            <span className={styles.cardValue}>{isLoading ? '...' : card.value}</span>
+      {/* ── Painel de resumo por período ─────────── */}
+      <div className={styles.periodPanel}>
+        <div className={styles.periodPanelHeader}>
+          <span className={styles.periodPanelTitle}>Resumo por Período</span>
+          <div className={styles.periodControls}>
+            {(
+              [
+                { key: 'today',     label: 'Hoje'          },
+                { key: 'yesterday', label: 'Ontem'         },
+                { key: 'week',      label: 'Esta semana'   },
+                { key: 'month',     label: 'Este mês'      },
+                { key: 'custom',    label: 'Personalizado' },
+              ] as { key: typeof periodPreset; label: string }[]
+            ).map(({ key, label }) => (
+              <button
+                key={key}
+                className={`${styles.periodBtn} ${periodPreset === key ? styles.periodBtnActive : ''}`}
+                onClick={() => setPeriodPreset(key)}
+              >
+                {label}
+              </button>
+            ))}
+            {periodPreset === 'custom' && (
+              <DatePicker.RangePicker
+                size="small"
+                format="DD/MM/YYYY"
+                value={customRange ?? undefined}
+                onChange={(v) => v && setCustomRange([v[0]!, v[1]!])}
+                style={{ marginLeft: 4 }}
+                disabledDate={(d) => d.isAfter(today, 'day')}
+              />
+            )}
           </div>
-        ))}
+        </div>
+
+        {periodSummary ? (
+          <div className={styles.periodMetrics}>
+            <div className={styles.periodMetric}>
+              <span className={styles.periodMetricLabel}>Entradas</span>
+              <span className={styles.periodMetricValue} style={{ color: '#1D9E75' }}>
+                {Number(periodSummary.totalEntradas).toLocaleString('pt-BR')} un.
+              </span>
+            </div>
+            <div className={styles.periodMetric}>
+              <span className={styles.periodMetricLabel}>Saídas</span>
+              <span className={styles.periodMetricValue} style={{ color: '#E24B4A' }}>
+                {Number(periodSummary.totalSaidas).toLocaleString('pt-BR')} un.
+              </span>
+            </div>
+            <div className={styles.periodMetric}>
+              <span className={styles.periodMetricLabel}>Movimentações</span>
+              <span className={styles.periodMetricValue} style={{ color: '#F59E0B' }}>
+                {periodSummary.movementCount}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: '12px 0' }}><Spin size="small" /></div>
+        )}
       </div>
 
       {/* ── Toolbar ──────────────────────────────── */}
