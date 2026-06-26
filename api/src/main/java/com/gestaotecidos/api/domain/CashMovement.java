@@ -32,7 +32,7 @@ public class CashMovement extends BaseDomain {
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean not null default false")
     private boolean cancelled = false;
 
     public CashMovement() {}

@@ -29,7 +29,7 @@ const MOVEMENT_DISPLAY: Record<string, { label: string; color: string; prefix: s
   SAIDA:        { label: '⬆ Saída',       color: 'red',    prefix: '-', cssClass: 'amountOut' },
   SANGRIA:      { label: '⬆ Sangria',     color: 'volcano',prefix: '-', cssClass: 'amountOut' },
   FECHAMENTO:   { label: '🔒 Fechamento', color: 'red',    prefix: '-', cssClass: 'amountOut' },
-  ESTORNO:      { label: '↩ Estorno',     color: 'orange', prefix: '+', cssClass: 'amountIn'  },
+  ESTORNO:      { label: '↩ Estorno',     color: 'orange', prefix: '-', cssClass: 'amountOut' },
   TRANSFERENCIA:{ label: '↔ Transf.',     color: 'cyan',   prefix: '',  cssClass: 'amountIn'  },
 }
 
