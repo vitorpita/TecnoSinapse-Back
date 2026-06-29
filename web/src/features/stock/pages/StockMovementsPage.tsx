@@ -10,8 +10,10 @@ import styles from './StockMovementsPage.module.css'
 const { TextArea } = Input
 
 const TYPE_CONFIG: Record<MovementType, { label: string; color: string; icon: React.ReactNode }> = {
-  ENTRADA: { label: 'Entrada', color: 'green',  icon: <ArrowDownOutlined /> },
-  SAIDA:   { label: 'Saída',   color: 'red',    icon: <ArrowUpOutlined />   },
+  ENTRADA:   { label: 'Entrada',   color: 'green',  icon: <ArrowDownOutlined /> },
+  SAIDA:     { label: 'Saída',     color: 'red',    icon: <ArrowUpOutlined />   },
+  DEVOLUCAO: { label: 'Devolução', color: 'orange', icon: <ArrowDownOutlined /> },
+  AJUSTE:    { label: 'Ajuste',    color: 'blue',   icon: <ArrowDownOutlined /> },
 }
 
 const REF_TYPE_LABELS: Record<string, string> = {
@@ -24,9 +26,11 @@ const REF_TYPE_LABELS: Record<string, string> = {
 }
 
 const typeFilterOptions = [
-  { value: '',        label: 'Todos os tipos' },
-  { value: 'ENTRADA', label: 'Entradas'       },
-  { value: 'SAIDA',   label: 'Saídas'         },
+  { value: '',          label: 'Todos os tipos' },
+  { value: 'ENTRADA',   label: 'Entradas'       },
+  { value: 'SAIDA',     label: 'Saídas'         },
+  { value: 'DEVOLUCAO', label: 'Devoluções'     },
+  { value: 'AJUSTE',    label: 'Ajustes'        },
 ]
 
 const movementTypeOptions = [

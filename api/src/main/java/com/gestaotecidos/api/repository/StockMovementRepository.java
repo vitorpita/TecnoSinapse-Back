@@ -18,10 +18,12 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     List<StockMovement> findByProductIdAndTypeOrderByCreatedAtDesc(Long productId, StockMovementType type);
 
+    List<StockMovement> findByReferenceIdAndReferenceTypeAndType(Long referenceId, String referenceType, StockMovementType type);
+
     @Query("SELECT sm FROM StockMovement sm WHERE sm.createdAt BETWEEN :from AND :to ORDER BY sm.createdAt DESC")
     List<StockMovement> findByPeriod(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    @Query("SELECT sm FROM StockMovement sm WHERE " +
+    @Query("SELECT sm FROM StockMovement sm WHERE sm.active = true AND " +
            "(:search = '' OR LOWER(sm.product.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(COALESCE(sm.reason, '')) LIKE LOWER(CONCAT('%', :search, '%'))) " +
            "ORDER BY sm.createdAt DESC")

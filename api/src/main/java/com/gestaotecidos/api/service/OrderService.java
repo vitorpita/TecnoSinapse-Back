@@ -338,6 +338,25 @@ public class OrderService {
             var product = item.getProduct();
             product.setStockQuantity(product.getStockQuantity().add(item.getQuantity()));
             productRepository.save(product);
+
+            stockMovementRepository
+                    .findByReferenceIdAndReferenceTypeAndType(order.getId(), "PEDIDO", StockMovementType.SAIDA)
+                    .stream()
+                    .filter(sm -> sm.getProduct().getId().equals(product.getId()))
+                    .forEach(sm -> {
+                        sm.deactivate();
+                        stockMovementRepository.save(sm);
+                    });
+
+            var devolucao = new StockMovement(
+                    product,
+                    StockMovementType.DEVOLUCAO,
+                    item.getQuantity(),
+                    "Cancelamento de Pedido #" + order.getId()
+            );
+            devolucao.setReferenceId(order.getId());
+            devolucao.setReferenceType("PEDIDO");
+            stockMovementRepository.save(devolucao);
         });
     }
 

@@ -1,6 +1,6 @@
 import { api } from '@/libs/axios'
 
-export type MovementType = 'ENTRADA' | 'SAIDA'
+export type MovementType = 'ENTRADA' | 'SAIDA' | 'DEVOLUCAO' | 'AJUSTE'
 
 export interface StockMovementRecord {
   id:            number

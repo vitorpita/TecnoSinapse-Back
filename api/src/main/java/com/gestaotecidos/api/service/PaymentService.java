@@ -1,6 +1,7 @@
 package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.Payment;
+import com.gestaotecidos.api.domain.Enums.OrderStatus;
 import com.gestaotecidos.api.dto.PaymentDtos;
 import com.gestaotecidos.api.exception.BusinessException;
 import com.gestaotecidos.api.exception.ResourceNotFoundException;
@@ -73,7 +74,9 @@ public class PaymentService {
         BigDecimal pending = order.getTotalAmount().subtract(totalPaid);
 
         String paymentStatus;
-        if (pending.compareTo(BigDecimal.ZERO) <= 0) {
+        if (order.getStatus() == OrderStatus.CANCELADO) {
+            paymentStatus = "CANCELADO";
+        } else if (pending.compareTo(BigDecimal.ZERO) <= 0) {
             paymentStatus = "PAGO";
         } else if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
             paymentStatus = "PARCIAL";
@@ -137,7 +140,9 @@ public class PaymentService {
         BigDecimal pending = totalOrderAmount.subtract(totalPaid);
 
         String paymentStatus;
-        if (pending.compareTo(BigDecimal.ZERO) <= 0) {
+        if (order.getStatus() == OrderStatus.CANCELADO) {
+            paymentStatus = "CANCELADO";
+        } else if (pending.compareTo(BigDecimal.ZERO) <= 0) {
             paymentStatus = "PAGO";
         } else if (totalPaid.compareTo(BigDecimal.ZERO) > 0) {
             paymentStatus = "PARCIAL";
