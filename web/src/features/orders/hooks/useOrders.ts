@@ -35,6 +35,7 @@ export function useOrderClients() {
     staleTime: 0,
     gcTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
   })
 }
 
@@ -125,7 +126,9 @@ export function useFaturarOrder() {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['stock-movements'] })
       queryClient.invalidateQueries({ queryKey: ['cash-current'] })
+      queryClient.invalidateQueries({ queryKey: ['cash-history'] })
       queryClient.invalidateQueries({ queryKey: ['cash-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
     },
     onError: (error: any) => {
       const errorMsg = error?.response?.data?.message || 'Erro ao faturar pedido'
@@ -177,7 +180,9 @@ export function useCancelOrder() {
       queryClient.invalidateQueries({ queryKey: PRODUCTS_QUERY_KEY })
       queryClient.invalidateQueries({ queryKey: ['stock-movements'] })
       queryClient.invalidateQueries({ queryKey: ['cash-current'] })
+      queryClient.invalidateQueries({ queryKey: ['cash-history'] })
       queryClient.invalidateQueries({ queryKey: ['cash-summary'] })
+      queryClient.invalidateQueries({ queryKey: ['payments'] })
     },
     onError: (error: any) => {
       const errorMsg = error?.response?.data?.message || 'Erro ao cancelar pedido'

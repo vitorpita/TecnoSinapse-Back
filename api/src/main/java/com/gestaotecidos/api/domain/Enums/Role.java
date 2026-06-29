@@ -32,6 +32,7 @@ public enum Role {
             Permission.REPORT_READ
     )),
     VENDEDOR(Set.of(
+            Permission.USER_READ,
             Permission.PRODUCT_READ,
             Permission.CATEGORY_READ,
             Permission.PERSON_READ,

@@ -7,7 +7,6 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
-    # Porta não exposta ao host em produção — acesso apenas interno
     volumes:
       - postgres_data_v2:/var/lib/postgresql/data
     healthcheck:
@@ -40,6 +39,10 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_CLOUDINARY_CLOUD_NAME: ${VITE_CLOUDINARY_CLOUD_NAME}
+        VITE_CLOUDINARY_UPLOAD_PRESET: ${VITE_CLOUDINARY_UPLOAD_PRESET}
     container_name: fabric_store_web
     ports:
       - "80:80"
