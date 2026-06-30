@@ -3,6 +3,8 @@ package com.gestaotecidos.api.service;
 import com.gestaotecidos.api.domain.CashMovement;
 import com.gestaotecidos.api.domain.CashRegister;
 import com.gestaotecidos.api.domain.User;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.dto.CashRegisterDtos;
 import com.gestaotecidos.api.exception.BusinessException;
@@ -37,13 +39,16 @@ public class CashRegisterService {
     private final CashRegisterRepository repository;
     private final OrderRepository orderRepository;
     private final CashMovementRepository cashMovementRepository;
+    private final AuditLogService auditLogService;
 
     public CashRegisterService(CashRegisterRepository repository,
                                OrderRepository orderRepository,
-                               CashMovementRepository cashMovementRepository) {
+                               CashMovementRepository cashMovementRepository,
+                               AuditLogService auditLogService) {
         this.repository = repository;
         this.orderRepository = orderRepository;
         this.cashMovementRepository = cashMovementRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -58,7 +63,10 @@ public class CashRegisterService {
         cashRegister.setOpenedAt(LocalDateTime.now());
         cashRegister.setObservation(data.observation());
 
-        return mapToResponse(repository.save(cashRegister));
+        var saved = repository.save(cashRegister);
+        auditLogService.log(AuditModule.CASH_REGISTER, AuditAction.CREATE, saved.getId(),
+                "Caixa #" + saved.getId(), "Saldo inicial: R$ " + data.openingBalance());
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -74,7 +82,10 @@ public class CashRegisterService {
         cashRegister.setClosedAt(LocalDateTime.now());
         if (data.observation() != null) cashRegister.setObservation(data.observation());
 
-        return mapToResponse(repository.save(cashRegister));
+        var saved = repository.save(cashRegister);
+        auditLogService.log(AuditModule.CASH_REGISTER, AuditAction.UPDATE, saved.getId(),
+                "Caixa #" + saved.getId(), "Fechamento | Saldo final: R$ " + data.closingBalance());
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -97,7 +108,10 @@ public class CashRegisterService {
         }
 
         cashRegister.getMovements().add(movement);
-        return mapToResponse(repository.save(cashRegister));
+        var saved = repository.save(cashRegister);
+        auditLogService.log(AuditModule.CASH_REGISTER, AuditAction.CREATE, saved.getId(),
+                "Caixa #" + saved.getId(), "Movimentação: " + data.type() + " | R$ " + data.amount());
+        return mapToResponse(saved);
     }
 
     @Transactional
@@ -115,6 +129,8 @@ public class CashRegisterService {
         }
 
         repository.save(cashRegister);
+        auditLogService.log(AuditModule.CASH_REGISTER, AuditAction.DELETE, cashId,
+                "Caixa #" + cashId, "Movimentação removida: #" + movementId);
     }
 
     public CashRegisterDtos.Response findById(Long id) {

@@ -159,8 +159,8 @@ const PRINT_CSS = `
   tbody tr { border-bottom: 1px solid #eef2f7; page-break-inside: avoid; }
   tbody tr:nth-child(even) { background: #f8fafc; }
   tbody tr:last-child { border-bottom: none; }
-  tbody td { padding: 5px 10px; font-size: 11px; white-space: nowrap; }
-  tbody td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody td { padding: 5px 10px; font-size: 11px; }
+  tbody td.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .empty-row { text-align: center; color: #aaa; padding: 20px 10px !important; }
 
   .total-row { display: flex; justify-content: space-between; padding: 8px 10px; background: #e8f3fb; color: #042C53; font-size: 11px; border-top: 2px solid #378ADD; }
@@ -168,6 +168,7 @@ const PRINT_CSS = `
   .print-footer { margin-top: 24px; padding-top: 10px; border-top: 1px solid #d0dbe8; display: flex; justify-content: space-between; font-size: 9px; color: #aaa; }
 
   @page { margin: 15mm 12mm; }
+  @page landscape { size: A4 landscape; margin: 10mm 8mm; }
   @media print { body { padding: 0; } }
 `
 
@@ -176,6 +177,10 @@ export function buildPrintHtml(options: PrintOptions, data: PrintData): string {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
+
+  const extraCss = data.type === 'PURCHASE_ORDERS'
+    ? `@page { size: A4 landscape; margin: 10mm 8mm; } table { font-size: 9px; } thead th { font-size: 8px; padding: 5px 6px; } tbody td { padding: 4px 6px; font-size: 9px; }`
+    : ''
 
   const allFilters = [
     ...options.filters,
@@ -196,7 +201,7 @@ export function buildPrintHtml(options: PrintOptions, data: PrintData): string {
 <head>
   <meta charset="UTF-8">
   <title>Relatório – ${options.reportTitle} — TecnoSinapse</title>
-  <style>${PRINT_CSS}</style>
+  <style>${PRINT_CSS}${extraCss}</style>
 </head>
 <body>
   <div class="print-header">

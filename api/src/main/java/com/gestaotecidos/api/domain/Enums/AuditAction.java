@@ -6,5 +6,6 @@ public enum AuditAction {
     CREATE,
     UPDATE,
     DELETE,
-    DEACTIVATE
+    DEACTIVATE,
+    VIEW
 }

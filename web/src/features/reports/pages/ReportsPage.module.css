@@ -328,6 +328,8 @@
   color: #999;
   border-top: 1px solid #f4f6f9;
   background: #fafcfe;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .countBadge strong {

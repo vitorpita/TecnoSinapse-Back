@@ -22,8 +22,6 @@ public class DatabaseConstraintMigration implements ApplicationRunner {
         jdbcTemplate.execute(
             "ALTER TABLE orders_aud DROP CONSTRAINT IF EXISTS orders_aud_status_check"
         );
-        // Drop Hibernate 6 auto-generated enum check constraint on cash_movements.type
-        // (needed when enum values were added after table creation)
         jdbcTemplate.execute("""
             DO $$ DECLARE cname TEXT;
             BEGIN
@@ -37,6 +35,38 @@ public class DatabaseConstraintMigration implements ApplicationRunner {
               LIMIT 1;
               IF cname IS NOT NULL THEN
                 EXECUTE 'ALTER TABLE cash_movements DROP CONSTRAINT ' || quote_ident(cname);
+              END IF;
+            END $$;
+        """);
+        jdbcTemplate.execute("""
+            DO $$ DECLARE cname TEXT;
+            BEGIN
+              SELECT tc.constraint_name INTO cname
+              FROM information_schema.table_constraints tc
+              JOIN information_schema.constraint_column_usage ccu
+                ON tc.constraint_name = ccu.constraint_name
+              WHERE tc.table_name = 'audit_logs'
+                AND ccu.column_name = 'module'
+                AND tc.constraint_type = 'CHECK'
+              LIMIT 1;
+              IF cname IS NOT NULL THEN
+                EXECUTE 'ALTER TABLE audit_logs DROP CONSTRAINT ' || quote_ident(cname);
+              END IF;
+            END $$;
+        """);
+        jdbcTemplate.execute("""
+            DO $$ DECLARE cname TEXT;
+            BEGIN
+              SELECT tc.constraint_name INTO cname
+              FROM information_schema.table_constraints tc
+              JOIN information_schema.constraint_column_usage ccu
+                ON tc.constraint_name = ccu.constraint_name
+              WHERE tc.table_name = 'audit_logs'
+                AND ccu.column_name = 'action'
+                AND tc.constraint_type = 'CHECK'
+              LIMIT 1;
+              IF cname IS NOT NULL THEN
+                EXECUTE 'ALTER TABLE audit_logs DROP CONSTRAINT ' || quote_ident(cname);
               END IF;
             END $$;
         """);

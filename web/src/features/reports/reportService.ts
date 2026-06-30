@@ -41,18 +41,18 @@ export const reportService = {
     return data as TransactionItem[]
   },
 
-  payments: async (limit: number) => {
-    const { data } = await api.get('/payments', { params: { size: limit, sort: 'createdAt,desc' } })
+  payments: async (page: number, size: number) => {
+    const { data } = await api.get('/payments', { params: { page, size, sort: 'createdAt,desc' } })
     return paged<PaymentItem>(data, [])
   },
 
-  purchaseOrders: async (limit: number) => {
-    const { data } = await api.get('/purchase-orders', { params: { size: limit, sort: 'id,desc' } })
+  purchaseOrders: async (page: number, size: number) => {
+    const { data } = await api.get('/purchase-orders', { params: { page, size, sort: 'id,desc' } })
     return paged<PurchaseOrderItem>(data, [])
   },
 
-  persons: async (limit: number) => {
-    const { data } = await api.get('/persons', { params: { size: limit } })
+  persons: async (page: number, size: number) => {
+    const { data } = await api.get('/persons', { params: { page, size } })
     return paged<PersonItem>(data, [])
   },
 

@@ -1,6 +1,8 @@
 package com.gestaotecidos.api.service;
 
 import com.gestaotecidos.api.domain.Payment;
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.OrderStatus;
 import com.gestaotecidos.api.dto.PaymentDtos;
 import com.gestaotecidos.api.exception.BusinessException;
@@ -23,15 +25,18 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final CashRegisterRepository cashRegisterRepository;
     private final FinancialInstallmentService installmentService;
+    private final AuditLogService auditLogService;
 
     public PaymentService(PaymentRepository repository,
                           OrderRepository orderRepository,
                           CashRegisterRepository cashRegisterRepository,
-                          FinancialInstallmentService installmentService) {
+                          FinancialInstallmentService installmentService,
+                          AuditLogService auditLogService) {
         this.repository = repository;
         this.orderRepository = orderRepository;
         this.cashRegisterRepository = cashRegisterRepository;
         this.installmentService = installmentService;
+        this.auditLogService = auditLogService;
     }
 
     @Transactional
@@ -62,6 +67,8 @@ public class PaymentService {
         payment.setObservation(data.observation());
 
         var savedPayment = repository.save(payment);
+        auditLogService.log(AuditModule.PAYMENTS, AuditAction.CREATE, savedPayment.getId(),
+                "Pagamento pedido #" + order.getId(), "Valor: R$ " + data.amount() + " | Método: " + data.paymentMethod());
 
         if (data.installmentId() != null) {
             installmentService.settleInstallment(data.installmentId(), savedPayment);
@@ -129,6 +136,7 @@ public class PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pagamento", id));
         payment.deactivate();
         repository.save(payment);
+        auditLogService.log(AuditModule.PAYMENTS, AuditAction.DELETE, id, "Pagamento #" + id);
     }
 
     private PaymentDtos.Response mapToResponse(Payment p) {

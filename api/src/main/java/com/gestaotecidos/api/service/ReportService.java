@@ -1,5 +1,7 @@
 package com.gestaotecidos.api.service;
 
+import com.gestaotecidos.api.domain.Enums.AuditAction;
+import com.gestaotecidos.api.domain.Enums.AuditModule;
 import com.gestaotecidos.api.domain.Enums.CashMovementType;
 import com.gestaotecidos.api.domain.OrderItem;
 import com.gestaotecidos.api.dto.ReportDtos;
@@ -26,20 +28,25 @@ public class ReportService {
     private final ProductRepository productRepository;
     private final StockMovementRepository stockMovementRepository;
     private final CashRegisterRepository cashRegisterRepository;
+    private final AuditLogService auditLogService;
 
     public ReportService(OrderRepository orderRepository,
                          PaymentRepository paymentRepository,
                          ProductRepository productRepository,
                          StockMovementRepository stockMovementRepository,
-                         CashRegisterRepository cashRegisterRepository) {
+                         CashRegisterRepository cashRegisterRepository,
+                         AuditLogService auditLogService) {
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
         this.productRepository = productRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.cashRegisterRepository = cashRegisterRepository;
+        this.auditLogService = auditLogService;
     }
 
     public List<ReportDtos.TransactionResponse> getTransactions(LocalDateTime from, LocalDateTime to) {
+        auditLogService.log(AuditModule.REPORTS, AuditAction.VIEW, null, "Relatório de transações",
+                "Período: " + from + " a " + to);
         var payments = paymentRepository.findByPeriod(from, to).stream()
                 .map(p -> new ReportDtos.TransactionResponse(
                         p.getId(),
@@ -68,6 +75,7 @@ public class ReportService {
     }
 
     public List<ReportDtos.StockInventoryItem> getStockInventory() {
+        auditLogService.log(AuditModule.REPORTS, AuditAction.VIEW, null, "Relatório de estoque", null);
         return productRepository.findByActiveTrue(org.springframework.data.domain.Pageable.unpaged())
                 .stream()
                 .map(p -> new ReportDtos.StockInventoryItem(
@@ -85,6 +93,8 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public List<ReportDtos.TopProductItem> getTopProducts(LocalDateTime from, LocalDateTime to) {
+        auditLogService.log(AuditModule.REPORTS, AuditAction.VIEW, null, "Relatório de produtos mais vendidos",
+                "Período: " + from + " a " + to);
         var orders = orderRepository.findAllActive();
 
         return orders.stream()
@@ -119,6 +129,8 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDtos.CashClosingResponse getCashClosing(Long cashRegisterId) {
+        auditLogService.log(AuditModule.REPORTS, AuditAction.VIEW, cashRegisterId,
+                "Relatório de fechamento de caixa", "Caixa #" + cashRegisterId);
         var cashRegister = cashRegisterRepository.findById(cashRegisterId)
                 .orElseThrow(() -> new com.gestaotecidos.api.exception.ResourceNotFoundException("Caixa", cashRegisterId));
 
@@ -176,6 +188,8 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public List<ReportDtos.SalesRankItem> getSalesRank(LocalDateTime from, LocalDateTime to) {
+        auditLogService.log(AuditModule.REPORTS, AuditAction.VIEW, null, "Relatório de ranking de vendedores",
+                "Período: " + from + " a " + to);
         var orders = orderRepository.findAllActive();
 
         return orders.stream()
@@ -203,6 +217,8 @@ public class ReportService {
     }
 
     public List<ReportDtos.StockMovementHistoryItem> getStockMovementHistory(LocalDateTime from, LocalDateTime to) {
+        auditLogService.log(AuditModule.REPORTS, AuditAction.VIEW, null, "Relatório de histórico de estoque",
+                "Período: " + from + " a " + to);
         return stockMovementRepository.findByPeriod(from, to).stream()
                 .map(sm -> new ReportDtos.StockMovementHistoryItem(
                         sm.getId(),

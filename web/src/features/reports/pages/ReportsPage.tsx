@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DatePicker, Select, Spin, Tag, Empty, Button, Modal } from 'antd'
+import { DatePicker, Select, Spin, Tag, Empty, Button, Modal, Pagination } from 'antd'
 import {
   RiseOutlined, ShoppingCartOutlined, SwapOutlined,
   DollarOutlined, AppstoreOutlined, TeamOutlined,
@@ -53,12 +53,19 @@ const PAY_STATUS: Record<string, { label: string; cls: string }> = {
   CANCELADO: { label: 'Cancelado', cls: ''              },
 }
 
-function CountBadge({ shown, total }: { shown: number; total: number }) {
+function TablePagination({ page, pageSize, total, onChange }: { page: number; pageSize: number; total: number; onChange: (p: number) => void }) {
   if (!total) return null
   return (
     <div className={styles.countBadge}>
-      Mostrando <strong>{shown}</strong> de <strong>{total}</strong> registros
-      {shown < total && <span className={styles.countHint}> — use &ldquo;Exportar CSV&rdquo; para ver todos</span>}
+      <Pagination
+        current={page}
+        pageSize={pageSize}
+        total={total}
+        onChange={onChange}
+        showSizeChanger={false}
+        showTotal={(t, range) => `${range[0]}–${range[1]} de ${t} registros`}
+        size="small"
+      />
     </div>
   )
 }
@@ -106,9 +113,10 @@ const SUB_REPORTS: Record<ReportKey, SubReport[]> = {
 }
 
 const PREVIEW_OPTIONS = [
-  { value: 15, label: '15 registros' },
-  { value: 20, label: '20 registros' },
-  { value: 40, label: '40 registros' },
+  { value: 15, label: '15 por página' },
+  { value: 20, label: '20 por página' },
+  { value: 40, label: '40 por página' },
+  { value: 50, label: '50 por página' },
 ]
 
 function defaultRange(): [string, string] {
@@ -123,6 +131,7 @@ export default function ReportsPage() {
   const [activeSub,    setActiveSub]    = useState<SubReportKey | null>(null)
   const [range,        setRange]        = useState<[string, string]>(defaultRange)
   const [previewSize,  setPreviewSize]  = useState(20)
+  const [page,         setPage]         = useState(1)
   const [exporting,    setExporting]    = useState(false)
   const [previewOpen,  setPreviewOpen]  = useState(false)
   const [previewHtml,  setPreviewHtml]  = useState('')
@@ -152,18 +161,18 @@ export default function ReportsPage() {
     enabled:  on('STOCK_MOVEMENTS'), staleTime: 60_000,
   })
   const payments = useQuery({
-    queryKey: ['report', 'payments', previewSize],
-    queryFn:  () => reportService.payments(previewSize),
+    queryKey: ['report', 'payments', previewSize, page],
+    queryFn:  () => reportService.payments(page - 1, previewSize),
     enabled:  on('PAYMENTS'), staleTime: 60_000,
   })
   const purchaseOrders = useQuery({
-    queryKey: ['report', 'purchase-orders', previewSize],
-    queryFn:  () => reportService.purchaseOrders(previewSize),
+    queryKey: ['report', 'purchase-orders', previewSize, page],
+    queryFn:  () => reportService.purchaseOrders(page - 1, previewSize),
     enabled:  on('PURCHASE_ORDERS'), staleTime: 60_000,
   })
   const persons = useQuery({
-    queryKey: ['report', 'persons', previewSize],
-    queryFn:  () => reportService.persons(previewSize),
+    queryKey: ['report', 'persons', previewSize, page],
+    queryFn:  () => reportService.persons(page - 1, previewSize),
     enabled:  on('PERSONS'), staleTime: 60_000,
   })
 
@@ -180,11 +189,12 @@ export default function ReportsPage() {
     }
   })()
 
-  const sliced = <T,>(arr?: T[]) => (arr ?? []).slice(0, previewSize)
+  const sliced = <T,>(arr?: T[]) => (arr ?? []).slice((page - 1) * previewSize, page * previewSize)
 
   const handleRange = (dates: [Dayjs | null, Dayjs | null] | null, _: [string, string]) => {
     if (dates?.[0] && dates?.[1]) {
       setRange([dates[0].format('YYYY-MM-DD'), dates[1].format('YYYY-MM-DD')])
+      setPage(1)
     }
   }
 
@@ -192,14 +202,16 @@ export default function ReportsPage() {
     if (activeCard === key) {
       setActiveCard(null)
       setActiveSub(null)
+      setPage(1)
       return
     }
     setActiveCard(key)
     const subs = SUB_REPORTS[key]
     setActiveSub(subs.length === 1 ? subs[0].key : null)
+    setPage(1)
   }
 
-  const handleSubClick = (key: SubReportKey) => setActiveSub(key)
+  const handleSubClick = (key: SubReportKey) => { setActiveSub(key); setPage(1) }
 
   const buildPrintData = (): PrintData | null => {
     switch (activeSub) {
@@ -379,7 +391,7 @@ export default function ReportsPage() {
               )}
               <Select
                 value={previewSize}
-                onChange={setPreviewSize}
+                onChange={(v) => { setPreviewSize(v); setPage(1) }}
                 options={PREVIEW_OPTIONS}
                 size="middle"
                 style={{ width: 140 }}
@@ -436,7 +448,7 @@ export default function ReportsPage() {
                           ))}
                         </tbody>
                       </table>
-                      <CountBadge shown={rows.length} total={total} />
+                      <TablePagination page={page} pageSize={previewSize} total={total} onChange={setPage} />
                     </>
                   )
                 })()}
@@ -469,7 +481,7 @@ export default function ReportsPage() {
                           ))}
                         </tbody>
                       </table>
-                      <CountBadge shown={rows.length} total={total} />
+                      <TablePagination page={page} pageSize={previewSize} total={total} onChange={setPage} />
                     </>
                   )
                 })()}
@@ -533,7 +545,7 @@ export default function ReportsPage() {
                           ))}
                         </tbody>
                       </table>
-                      <CountBadge shown={orders.length} total={total} />
+                      <TablePagination page={page} pageSize={previewSize} total={total} onChange={setPage} />
                     </>
                   )
                 })()}
@@ -571,7 +583,7 @@ export default function ReportsPage() {
                           ))}
                         </tbody>
                       </table>
-                      <CountBadge shown={rows.length} total={total} />
+                      <TablePagination page={page} pageSize={previewSize} total={total} onChange={setPage} />
                     </>
                   )
                 })()}
@@ -607,7 +619,7 @@ export default function ReportsPage() {
                           })}
                         </tbody>
                       </table>
-                      <CountBadge shown={rows.length} total={total} />
+                      <TablePagination page={page} pageSize={previewSize} total={total} onChange={setPage} />
                     </>
                   )
                 })()}
@@ -671,7 +683,7 @@ export default function ReportsPage() {
                           )
                         })()}
                       </table>
-                      <CountBadge shown={rows.length} total={total} />
+                      <TablePagination page={page} pageSize={previewSize} total={total} onChange={setPage} />
                     </>
                   )
                 })()}
@@ -706,7 +718,7 @@ export default function ReportsPage() {
                           ))}
                         </tbody>
                       </table>
-                      <CountBadge shown={rows.length} total={total} />
+                      <TablePagination page={page} pageSize={previewSize} total={total} onChange={setPage} />
                     </>
                   )
                 })()}
